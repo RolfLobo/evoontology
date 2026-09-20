@@ -12,7 +12,17 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/ruc-datalab/EvoOntology/stargazers"><img src="https://img.shields.io/github/stars/ruc-datalab/EvoOntology?style=flat&amp;logo=github&amp;color=3941EA" alt="GitHub stars"></a>
+  <a href="https://github.com/ruc-datalab/EvoOntology/forks"><img src="https://img.shields.io/github/forks/ruc-datalab/EvoOntology?style=flat&amp;logo=github&amp;color=3941EA" alt="GitHub forks"></a>
+  <a href="https://hitscounter.dev/history?url=https%3A%2F%2Fgithub.com%2Fruc-datalab%2FEvoOntology"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fruc-datalab%2FEvoOntology&amp;label=Views&amp;icon=graph-up&amp;color=%233941ea&amp;message=&amp;style=flat&amp;tz=Asia%2FShanghai" alt="Page views: today / total"></a>
+</p>
+
+<p align="center">
   <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
+<p align="center">
+  <a href="#user-content--demo">Demo</a> · <a href="#user-content--quick-start">Quick start</a> · <a href="#user-content--community--coverage">Community</a> · <a href="#user-content--star-history">Star history</a>
 </p>
 
 > **Authors:** [Meiduo Chong](https://github.com/MeiduoChong), [Shaolei Zhang](https://zhangshaolei1998.github.io/)<sup>*</sup>, [Ju Fan](https://iir.ruc.edu.cn/~fanj/), [Xiaoyong Du](https://info.ruc.edu.cn/jsky/szdw/ajxjgcx/jsjkxyjsx1/js2/7374b0a3f58045fc9543703ccea2eb9c.htm)<br>
@@ -38,7 +48,7 @@ EvoOntology bridges the **agent-data gap** over heterogeneous tables, files, and
 
 The Codex and Claude Code plugins build and evolve ontology layers over your data.
 
-https://github.com/user-attachments/assets/85b84bd8-0673-4477-9298-dae0e6565b82
+https://github.com/user-attachments/assets/e15f4acd-7161-4ae1-ba41-f2f3ea05488b
 
 
 ## ✨ Highlights
@@ -136,10 +146,13 @@ codex plugin list
 Start a new thread, then ask Codex to use:
 
 ```text
-$evo-build
-$evo-evolve
-$evo-visualize
+$build-ontology
+$evolve-ontology
+$explore-ontology
 ```
+
+Codex prepares questions from user needs, relevant project history and grounded exploration; question/trajectory files are optional. Build and Evolve automatically open the outcome explorer. SQLite has built-in read-only task replay; other data sources use host tools with explicit observation recording. See [Codex plugin](plugins/evoontology-codex/README.md).
+
 
 Once built, the Data Agent can call `browse_semantics` and `resolve_semantics` without additional ontology configuration. See the [usage guide](USAGE.md) for the full workflow and data boundaries.
 
@@ -185,6 +198,29 @@ Each environment implements an `EvolutionAdapter` and preserves its native rollo
 - [Architecture](docs/architecture.md) — module boundaries, evolution state machine, and evaluation modes.
 - [Add a benchmark](docs/guide/new-benchmark.md) — adapter, data loader, rollout, configuration, and seed-skill contract.
 - [Claude Code plugin](plugins/claude-code/README.md) and [Codex plugin](plugins/evoontology-codex/README.md) — client-specific installation and usage.
+
+## 🌐 Community & Coverage
+
+Thank you to the community for sharing and discussing EvoOntology.
+
+| Source | Coverage |
+| --- | --- |
+| [Gorden Sun · X](https://x.com/Gorden_Sun/status/2100846451375141145) | An introduction to how EvoOntology helps data agents understand business semantics. |
+| [Bloss0m](https://www.bloss0m.com/paper-reading/50-evoontology-self-evolving-ontology/) | An independent paper walkthrough of the semantic layer, MCP interface and controlled evolution. |
+
+## ⭐ Star History
+
+<p align="center">
+  <a href="https://www.star-history.com/#ruc-datalab/EvoOntology&amp;Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ruc-datalab/EvoOntology&amp;type=Date&amp;theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ruc-datalab/EvoOntology&amp;type=Date">
+      <img src="https://api.star-history.com/svg?repos=ruc-datalab/EvoOntology&amp;type=Date" alt="EvoOntology Star History" width="100%">
+    </picture>
+  </a>
+</p>
+
+<sub>Stars and forks track the official ruc-datalab/EvoOntology repository. The views badge counts today / total image requests (Asia/Shanghai), starting when enabled; image caching affects the count, which is not a unique-visitor metric.</sub>
 
 ## 🖋 Citation
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Build Ontology · 构建语义层"
+  short_description: "从数据与分析目标出发，自动准备问题、构建语义层并展示结果"
+  icon_small: "./assets/evoontology.png"
+  icon_large: "./assets/evoontology.png"
+  brand_color: "#3941EA"
+  default_prompt: "Use $evoontology-codex:build-ontology to build an ontology for this data project, prepare relevant questions from my goals and available project history, and show the result."

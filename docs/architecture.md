@@ -25,7 +25,7 @@ Accept/Reject 门控约束每一次改动。SkillOpt 训练的是 skill 文档�
 | --- | --- |
 | `evoontology/` | 确定性核心包：ontology store、runtime/MCP、trajectory、trigger、evaluation、evolution 状态机、validate 门禁 |
 | `plugins/claude-code/` | Claude Code 插件：`/evo-build`、`/evo-evolve`、`/evo-visualize` 命令、builder/evolver skill、`.mcp.json`、Session Start 提醒 hook |
-| `plugins/evoontology-codex/` | Codex 插件：`AGENTS.md`、`evo-build`/`evo-evolve`/`evo-visualize` skill、`.mcp.json` |
+| `plugins/evoontology-codex/` | Codex 插件：`AGENTS.md`、`build-ontology`/`evolve-ontology`/`explore-ontology` skill、`.mcp.json` |
 | `benchmarks/` | 三个 benchmark 环境（bird / ddr_10k / insightbench），每个环境实现一个 `EvolutionAdapter` |
 | `scripts/` | `sync_plugin_core.py`（把根 core 同步到两个插件） |
 | `docs/` | 架构与接入文档 |

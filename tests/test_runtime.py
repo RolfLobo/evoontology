@@ -48,6 +48,43 @@ def test_browse_needs_query(tmp_path):
     assert result["status"] == "needs_query"
 
 
+def test_browse_ignores_stopwords_when_ranking(tmp_path):
+    records = {
+        "terms": [
+            {
+                "id": "paid_share",
+                "name": "fully paid percentage",
+                "type": "metric",
+                "definition": "percentage of the loan amount",
+            },
+            {
+                "id": "approval_date",
+                "name": "loan approval date",
+                "type": "dimension",
+                "definition": "date when a loan was approved",
+            },
+        ],
+        "mappings": [],
+        "relations": [],
+        "constraints": [],
+        "evidence": [],
+    }
+    ensure_workspace(str(tmp_path))
+    SemanticStore.save_version(str(tmp_path), "ontology_v0", records)
+    SemanticStore.set_active(str(tmp_path), "ontology_v0")
+
+    result = SemanticLayer.load(str(tmp_path)).browse(
+        query="How many loans were approved in the period?", kind="term"
+    )
+
+    assert result["items"][0]["id"] == "approval_date"
+    assert all(
+        token not in {"how", "many", "were", "in", "the"}
+        for item in result["items"]
+        for token in item["match_rationale"]["overlap_tokens"]
+    )
+
+
 def test_resolve(tmp_path):
     _init(tmp_path)
     layer = SemanticLayer.load(str(tmp_path))
@@ -64,6 +101,31 @@ def test_resolve_unresolved(tmp_path):
     layer = SemanticLayer.load(str(tmp_path))
     result = layer.resolve(mentions=["nonexistent"])
     assert result["results"][0]["status"] == "unresolved"
+
+
+def test_resolve_does_not_confuse_substrings(tmp_path):
+    records = {
+        "terms": [
+            {"id": "male", "name": "male client", "type": "category"},
+            {"id": "female", "name": "female client", "type": "category"},
+            {"id": "issue", "name": "loan issue", "type": "category"},
+            {"id": "issued", "name": "statement issued", "type": "category"},
+        ],
+        "mappings": [],
+        "relations": [],
+        "constraints": [],
+        "evidence": [],
+    }
+    ensure_workspace(str(tmp_path))
+    SemanticStore.save_version(str(tmp_path), "ontology_v0", records)
+    SemanticStore.set_active(str(tmp_path), "ontology_v0")
+    layer = SemanticLayer.load(str(tmp_path))
+
+    male = layer.resolve(mentions=["male"])["results"][0]
+    issued = layer.resolve(mentions=["issued"])["results"][0]
+
+    assert male["term"]["id"] == "male"
+    assert issued["term"]["id"] == "issued"
 
 
 def test_uninitialized(tmp_path):

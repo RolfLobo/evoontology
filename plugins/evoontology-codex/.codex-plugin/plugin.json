@@ -1,7 +1,7 @@
 {
   "name": "evoontology-codex",
-  "version": "1.0.2+codex.20260911071902",
-  "description": "Build, query, record, and evolve a versioned ontology layer for data agents.",
+  "version": "1.1.1+codex.20260920120920",
+  "description": "Build, evolve and explore evidence-grounded ontologies from analytical goals and project tasks.",
   "author": {
     "name": "Meiduo Chong"
   },
@@ -17,18 +17,22 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "EvoOntology",
-    "shortDescription": "A self-evolving ontology layer for data agents.",
-    "longDescription": "Build an evidence-grounded ontology layer, use it through bounded MCP tools, record task trajectories, and evolve it behind an evaluation gate.",
+    "shortDescription": "Build · Evolve · Explore：从分析目标到语义层与效果展示",
+    "longDescription": "Prepare questions from user needs, relevant project history and grounded exploration. Build an ontology, record real tasks, validate evolution and explore outcomes with evidence and version comparisons.",
     "developerName": "Meiduo Chong",
     "category": "Productivity",
+    "composerIcon": "./assets/evoontology.png",
+    "logo": "./assets/evoontology.png",
+    "logoDark": "./assets/evoontology.png",
+    "brandColor": "#3941EA",
     "capabilities": [
       "Interactive",
       "Write"
     ],
     "defaultPrompt": [
-      "Build an initial ontology layer for this data project.",
-      "Check whether the ontology layer is due for evolution.",
-      "Evolve the active ontology layer using recorded trajectories."
+      "Build an ontology for this data project and show the result.",
+      "Improve this ontology using recent project tasks and show validated changes.",
+      "Explore ontology questions, evidence and version outcomes."
     ]
   },
   "mcpServers": "./.mcp.json"

@@ -1,7 +1,7 @@
 """Read-only visualization of an EvoOntology version.
 
 Public entry point: :func:`visualize`. Claude Code (``/evo-visualize``) and
-Codex (``$evo-visualize``) both call this same API.
+Codex (``$explore-ontology``) both call this same API.
 """
 
 from .renderer import (

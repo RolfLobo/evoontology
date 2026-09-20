@@ -653,7 +653,7 @@ def test_tool_view_uses_real_registry(workspace):
 def test_plugin_entry_points_call_same_core_api():
     claude_command = REPO_ROOT / "plugins" / "claude-code" / "commands" / "evo-visualize.md"
     codex_skill = (REPO_ROOT / "plugins" / "evoontology-codex" /
-                   "skills" / "evo-visualize" / "SKILL.md")
+                   "skills" / "explore-ontology" / "SKILL.md")
     assert claude_command.is_file() and codex_skill.is_file()
 
     claude_text = claude_command.read_text(encoding="utf-8")
@@ -661,7 +661,7 @@ def test_plugin_entry_points_call_same_core_api():
     invocation = "python -m evoontology.visualization"
     assert invocation in claude_text, "Claude command must call Core visualize()"
     assert invocation in codex_text, "Codex skill must call Core visualize()"
-    assert "name: evo-visualize" in codex_text
+    assert "name: explore-ontology" in codex_text
 
 
 # ---- read-only guarantee --------------------------------------------------------

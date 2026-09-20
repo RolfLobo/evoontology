@@ -108,12 +108,37 @@ def test_candidate_evaluation_does_not_touch_active(tmp_path):
     assert not (ws / "state.json").exists()
 
 
+def _record_passing_gate(session):
+    session.record_evaluation(session.run["current_candidate"], {"metrics": {}, "gate_input": {
+        "protocol": "ground_truth", "case_ids": ["independent_case"],
+        "parent_scores": [0], "candidate_scores": [1], "unacceptable_regressions": False,
+    }}, role="candidate")
+
+
+def test_publication_refuses_missing_or_failed_gate(tmp_path):
+    ws = _setup(tmp_path)
+    session = EvolutionSession(str(ws))
+    session.start_run("ontology_v0")
+    session.begin_round("h", "candidate")
+    SemanticStore.save_version(str(ws), "candidate", _candidate())
+    with pytest.raises(EvolutionError, match="gate_input"):
+        session.accept()
+    session.record_evaluation("candidate", {"metrics": {}, "gate_input": {
+        "protocol": "ground_truth", "case_ids": ["q"], "parent_scores": [1],
+        "candidate_scores": [0], "unacceptable_regressions": False}}, role="candidate")
+    with pytest.raises(EvolutionError, match="did not pass"):
+        session.accept()
+    assert SemanticStore.active_version(str(ws)) == "ontology_v0"
+    assert session.status == "running"
+
+
 def test_accept_publishes_and_advances_checkpoint(tmp_path):
     ws = _setup(tmp_path)
     session = EvolutionSession(str(ws))
     session.start_run("ontology_v0")
     session.begin_round("h", "v0-c1")
     SemanticStore.save_version(str(ws), "v0-c1", _candidate())
+    _record_passing_gate(session)
     assert session.accept() == "ontology_v1"
     assert session.status == "accepted"
     assert SemanticStore.active_version(str(ws)) == "ontology_v1"
@@ -133,6 +158,7 @@ def test_accept_counts_legacy_versions_but_publishes_canonical_name(tmp_path):
     session.begin_round("h", "v3-c1")
     SemanticStore.save_version(str(tmp_path), "v3-c1", _candidate())
 
+    _record_passing_gate(session)
     assert session.accept() == "ontology_v4"
     assert SemanticStore.active_version(str(tmp_path)) == "ontology_v4"
 
@@ -203,6 +229,7 @@ def test_resume_rejects_terminal_runs(tmp_path):
     session.start_run("ontology_v0")
     session.begin_round("h", "v0-c1")
     SemanticStore.save_version(str(ws), "v0-c1", _candidate())
+    _record_passing_gate(session)
     session.accept()
     with pytest.raises(EvolutionError):
         EvolutionSession(str(ws)).resume("run_1")

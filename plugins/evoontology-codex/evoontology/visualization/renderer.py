@@ -27,6 +27,7 @@ from ..ontology.store import SemanticStore
 from ..runtime.runtime import SemanticLayer
 from ..runtime.tools import TOOLS
 from ..workspace import PathLike, resolve_workspace_for_version
+from ..workflow import build_experience
 
 ACTIVE = "active"
 VISUALIZATIONS_DIRNAME = "visualizations"
@@ -118,6 +119,7 @@ def visualize(
             "content": {"nodes": content["nodes"], "edges": content["edges"]},
             "schema": schema_snapshot,
             "tools": build_tool_view(store),
+            "experience": build_experience(root, version_name),
         }
 
     data = {

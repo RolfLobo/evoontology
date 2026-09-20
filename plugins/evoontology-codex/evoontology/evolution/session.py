@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import re
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -30,6 +31,8 @@ from ..ontology.store import SemanticStore
 from ..trigger.trigger import EvolutionTrigger
 from ..workspace import PathLike, ensure_workspace, load_project, resolve_workspace
 from .adapter import normalize_result
+from ..evaluation.evaluation import EvaluationGate
+from ..validate import validate
 
 RUNNING = "running"
 ACCEPTED = "accepted"
@@ -303,6 +306,8 @@ class EvolutionSession:
             "metrics": normalized.get("metrics", {}),
             "cases": normalized.get("cases", []),
             "artifact_paths": normalized.get("artifact_paths", []),
+            "provenance": normalized.get("provenance", "unspecified"),
+            "gate_input": normalized.get("gate_input"),
             "recorded_at": _now(),
         }
         evaluations_dir = self.run_dir / "evaluations"
@@ -393,6 +398,12 @@ class EvolutionSession:
         candidate = str(run.get("current_candidate") or "")
         if not candidate:
             raise EvolutionError("No Candidate under evaluation to accept")
+        validation = validate(str(self.workspace), version=candidate)
+        if not validation["passed"]:
+            raise EvolutionError(f"Candidate validation failed: {validation['errors']}")
+        gate = self._publication_gate(run)
+        if not gate["accept"]:
+            raise EvolutionError("Candidate did not pass the recorded evaluation gate")
         # Validate the Candidate loads before anything else changes.
         SemanticStore.load_version(self.workspace, candidate)
         target = str(new_version or "").strip() or self._next_official_version()
@@ -401,8 +412,42 @@ class EvolutionSession:
         run["status"] = ACCEPTED
         run["accepted_version"] = target
         run["end_reason"] = ""
+        run["gate"] = gate
         self._save_run()
         return target
+
+    def _publication_gate(self, run):
+        summaries = []
+        for path in (self.run_dir / "evaluations").glob("*.json"):
+            summary = _read_json(path)
+            if summary.get("round") == run["round"] and summary.get("subject") == run["current_candidate"]:
+                summaries.append(summary)
+        summaries.sort(key=lambda s: s.get("recorded_at", ""), reverse=True)
+        supplied = next((s.get("gate_input") for s in summaries if s.get("gate_input")), None)
+        if not isinstance(supplied, dict):
+            raise EvolutionError("Record candidate evaluation gate_input before publication")
+        if supplied.get("unacceptable_regressions") is not False:
+            raise EvolutionError("Evaluation must explicitly rule out unacceptable regressions")
+        protocol = supplied.get("protocol")
+        expected = run.get("acceptance", {}).get("protocol")
+        if expected and protocol != expected:
+            raise EvolutionError("Gate protocol differs from the frozen acceptance protocol")
+        if protocol == "ground_truth":
+            parent = supplied.get("parent_scores", [])
+            candidate = supplied.get("candidate_scores", [])
+            cases = supplied.get("case_ids", [])
+            if not parent or len(parent) != len(candidate) or len(cases) != len(parent) or len(set(cases)) != len(cases):
+                raise EvolutionError("Gate needs paired scores with unique matching case_ids")
+            if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in parent + candidate):
+                raise EvolutionError("Gate scores must be finite numbers")
+            return EvaluationGate.decide_gt(parent, candidate)
+        if protocol == "llm_judge":
+            verdicts = supplied.get("verdicts", [])
+            if not verdicts or any(v.get("winner") not in {"parent", "candidate", "tie"}
+                                   or not isinstance(v.get("critical_error"), bool) for v in verdicts):
+                raise EvolutionError("Gate needs nonempty valid judge verdicts")
+            return EvaluationGate.decide_judge(verdicts)
+        raise EvolutionError("Unknown evaluation gate protocol")
 
     def mark_incomplete(self, reason: str) -> Dict[str, Any]:
         """Stop the run for a legitimate external reason.

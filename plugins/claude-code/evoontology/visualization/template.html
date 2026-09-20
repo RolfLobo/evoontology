@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__TITLE__</title>
+<link rel="icon" href="data:,">
 <style>
   :root {
     --bg: #f7f8fa;
@@ -435,6 +436,36 @@
   }
   #dupe-banner button { padding: 3px 12px; font-size: 13px; border-radius: 8px; flex: none; }
 
+  body.overview #intro-strip, body.overview .search-box { display: none; }
+  nav .tab { flex-shrink: 0; }
+  main.overview-active { grid-template-columns: minmax(0, 1fr); }
+  main.overview-active #detail { display: none; }
+  #view-overview { overflow: auto; padding: 28px; }
+  .result-hero { padding: 24px; border: 1px solid #cdd7f5; border-radius: 18px; background: linear-gradient(120deg,#f3f5ff,#f1faf7); margin-bottom: 22px; }
+  .result-hero h1 { font-size: 24px; margin: 0 0 12px; }
+  .result-hero p, .result-card p { line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 14px; }
+  .result-card { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 18px; margin-bottom: 12px; min-width: 0; }
+  .result-card h3 { margin: 8px 0 12px; font-size: 16px; }
+  .result-card pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }
+  .result-label { font-size: 12px; color: var(--muted); }
+  .result-card button { margin: 4px 8px 4px 0; }
+  .result-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .result-step { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; }
+  @media(max-width:760px) {
+    body:not(.overview) #intro-strip { display: none; }
+    body:not(.overview) main { overflow-y: auto; display: block; }
+    body:not(.overview) #views { min-height: 420px; }
+    body:not(.overview) #view-content { min-height: 340px; }
+    body:not(.overview) #cy-wrap { min-height: 300px; }
+    body:not(.overview) #detail { max-height: 240px; min-height: 80px; }
+    header { flex-wrap: wrap; height: auto; } .header-context, .header-tools { flex-wrap: wrap; }
+    main, main.compare-active { grid-template-columns: minmax(0,1fr); }
+    main:not(.overview-active) { grid-template-rows: minmax(220px,1fr) minmax(0,35%); }
+    #detail { grid-column: 1; grid-row: 2; overflow: auto; border-top: 1px solid var(--border); }
+    #view-overview { padding: 14px; }
+    nav { overflow-x: auto; } .result-grid { grid-template-columns: minmax(0,1fr); }
+  }
   /* ---- scrollbars ---- */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb { background: #cdd6e2; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
@@ -494,6 +525,7 @@
   <button id="btn-guide" type="button" class="linklike" data-i18n="intro.guide">使用指南</button>
 </div>
 <nav>
+  <button class="tab" data-view="overview" type="button" data-i18n="tab.overview">结果与问题</button>
   <button class="tab active" data-view="content" type="button" data-i18n="tab.content">本体内容</button>
   <button class="tab" data-view="schema" type="button" data-i18n="tab.schema">Schema 层</button>
   <button class="tab" data-view="tool" type="button" data-i18n="tab.tool">Tool 层</button>
@@ -520,6 +552,7 @@
       </label>
       <button id="btn-compare-close" type="button" data-i18n="compare.close">退出对比</button>
     </div>
+    <section id="view-overview" class="view" hidden></section>
     <section id="view-content" class="view">
       <div id="cy-wrap">
         <div id="primary-pane" class="graph-pane">
@@ -584,7 +617,8 @@
     <div id="welcome-body">
       <h3 data-i18n="welcome.what.title">这个页面是什么？</h3>
       <p data-i18n="welcome.what.body">本页面是 EvoOntology 当前 ontology layer 的只读快照，不修改任何本体层状态。该层围绕 Agent 的工作负载构建，通过 Agent 的 MCP 工具接口按需访问，并根据 Agent 的执行轨迹持续进化。本页面将当前本体版本可视化为图谱：业务概念（Term）如何落地到数据库表列（Mapping）、受哪些使用约束（Constraint）、由哪些证据（Evidence）支撑，以及概念之间的语义关系（Relation）。</p>
-      <h3 data-i18n="welcome.views.title">三个视图</h3>
+      <h3 data-i18n="welcome.views.title">四个视图</h3>
+      <p data-i18n="welcome.overview">结果与问题 — 从问题查看语义、证据、执行结果和进化效果</p>
       <ul class="welcome-list">
         <li><span class="welcome-view"><span class="w-tag" data-i18n="tab.content">本体内容</span><span data-i18n="welcome.views.content.desc">— 交互式语义图谱，支持搜索、过滤、展开 / 收起</span></span></li>
         <li><span class="welcome-view"><span class="w-tag" data-i18n="tab.schema">Schema 层</span><span data-i18n="welcome.views.schema.desc">— 对象类型、受控关系取值与结构引用规则</span></span></li>
@@ -653,6 +687,7 @@ window.EVO_DATA = __DATA_JSON__;
       'version.kind.candidate': '候选',
       'badge.active': '当前激活版本',
       'badge.explicit': '指定版本',
+      'tab.overview': '结果与问题',
       'compare.open': '对比',
       'compare.open.title': '并排对比两个本体层版本',
       'compare.title': '版本对比',
@@ -742,7 +777,8 @@ window.EVO_DATA = __DATA_JSON__;
       'welcome.subtitle': '探索面向 Data Agent 构建的 Agent-first 自进化本体层',
       'welcome.what.title': '这个页面是什么？',
       'welcome.what.body': '本页面是 EvoOntology 当前 ontology layer 的只读快照，不修改任何本体层状态。该层围绕 Agent 的工作负载构建，通过 Agent 的 MCP 工具接口按需访问，并根据 Agent 的执行轨迹持续进化。本页面将当前本体版本可视化为图谱：业务概念（Term）如何落地到数据库表列（Mapping）、受哪些使用约束（Constraint）、由哪些证据（Evidence）支撑，以及概念之间的语义关系（Relation）。',
-      'welcome.views.title': '三个视图',
+      'welcome.views.title': '四个视图',
+      'welcome.overview': '结果与问题 — 从问题查看语义、证据、执行结果和进化效果',
       'welcome.views.content.desc': '— 交互式语义图谱，支持搜索、过滤、展开 / 收起',
       'welcome.views.schema.desc': '— 对象类型、受控关系取值与结构引用规则',
       'welcome.views.tool.desc': '— 智能体查询本体层时使用的 MCP 工具',
@@ -773,6 +809,7 @@ window.EVO_DATA = __DATA_JSON__;
       'version.kind.candidate': 'Candidate',
       'badge.active': 'Active version',
       'badge.explicit': 'Explicit version',
+      'tab.overview': 'Results & questions',
       'compare.open': 'Compare',
       'compare.open.title': 'Compare two ontology-layer versions side by side',
       'compare.title': 'Version comparison',
@@ -862,7 +899,8 @@ window.EVO_DATA = __DATA_JSON__;
       'welcome.subtitle': 'Explore an agent-first, self-evolving ontology layer for data agents',
       'welcome.what.title': 'What is this page?',
       'welcome.what.body': 'This page is a read-only snapshot of the current EvoOntology layer; it never modifies ontology-layer state. The layer is built around the agent\'s workload, queried on demand through the agent\'s MCP tool interface, and continuously adapted from the agent\'s execution trajectories. This page visualizes the current ontology version as a graph: how business concepts (Terms) are grounded to database tables and columns (Mappings), which usage Constraints apply, which Evidence supports them, and how the concepts relate to each other (Relations).',
-      'welcome.views.title': 'Three views',
+      'welcome.views.title': 'Four views',
+      'welcome.overview': 'Results & questions — explore semantics, evidence, execution and evolution outcomes through questions',
       'welcome.views.content.desc': '— the interactive semantic graph with search, filters and expand / collapse',
       'welcome.views.schema.desc': '— object types, controlled relation values and structural reference rules',
       'welcome.views.tool.desc': '— the MCP tools agents use to query the ontology layer',
@@ -1104,11 +1142,14 @@ window.EVO_DATA = __DATA_JSON__;
 
   /* ================= tabs ================= */
 
-  var views = { content: $('#view-content'), schema: $('#view-schema'), tool: $('#view-tool') };
+  var views = { overview: $('#view-overview'), content: $('#view-content'), schema: $('#view-schema'), tool: $('#view-tool') };
   var tabButtons = $all('nav .tab');
   var currentViewName = 'content';
   function showView(name) {
     currentViewName = name;
+    $('main').classList.toggle('overview-active', name === 'overview');
+    document.body.classList.toggle('overview', name === 'overview');
+    if (name === 'overview' && compareActive) exitCompare();
     tabButtons.forEach(function (button) {
       button.classList.toggle('active', button.getAttribute('data-view') === name);
     });
@@ -2611,6 +2652,7 @@ window.EVO_DATA = __DATA_JSON__;
   }
 
   function enterCompare() {
+    if (currentViewName === 'overview') showView('content');
     if (compareActive || Object.keys(VERSION_DATA).length < 2) return;
     compareActive = true;
     $('#compare-bar').hidden = false;
@@ -3095,6 +3137,111 @@ window.EVO_DATA = __DATA_JSON__;
   $('#btn-help').addEventListener('click', openWelcome);
   $('#btn-guide').addEventListener('click', openWelcome);
 
+  /* ================= outcome and question explorer ================= */
+  function words(zh, en) { return LANG === 'zh' ? zh : en; }
+  function stateLabel(value) {
+    var labels = {completed:['已执行','Executed'],failed:['执行失败','Failed'],interrupted:['已中断','Interrupted'],running:['运行中','Running'],accepted:['已接受并发布','Accepted and published'],incomplete:['未完成，保留原版本','Incomplete; parent retained'],user_interrupted:['用户中断','User interrupted'],budget_exhausted:['预算已用完','Budget exhausted'],missing_data:['缺少数据','Missing data'],missing_permissions:['缺少访问权限','Missing access'],unreliable_evaluation:['评估无法可靠完成','Evaluation unreliable'],external_block:['外部条件阻塞','External block']};
+    return labels[value] ? words(labels[value][0],labels[value][1]) : value;
+  }
+  function printable(value) { return typeof value === 'string' ? value : JSON.stringify(value, null, 2); }
+  function focusQuestion(question) {
+    if (compareActive) exitCompare();
+    showView('content');
+    if (!cy) return;
+    var ids = question.object_ids || [];
+    var selected = cy.elements().filter(function (e) {
+      return ids.indexOf(e.id()) >= 0 || ids.indexOf(e.data('raw_id')) >= 0
+        || ids.some(function (id) { return e.id() === 'term:' + id || e.id() === 'mapping:' + id
+            || e.id() === 'constraint:' + id || e.id() === 'evidence:' + id || e.id() === 'rel:' + id; });
+    });
+    var neighborhood = selected.closedNeighborhood();
+    cy.elements().removeClass('dim');
+    if (selected.length) {
+      cy.elements().not(neighborhood).addClass('dim');
+      cy.fit(neighborhood, 70);
+    }
+    detailEmpty.hidden = true; detailBody.hidden = false; detailBody.innerHTML = '';
+    detailBody.appendChild(el('div', 'detail-title', question.question));
+    detailBody.appendChild(el('p', '', words('高亮关联概念及其相邻证据。点击对象查看具体口径与依据。',
+      'Related concepts and neighboring evidence are highlighted. Select an object to inspect its definition and grounding.')));
+    lastDetail = null;
+  }
+  function buildOverview() {
+    var view = $('#view-overview'); view.innerHTML = '';
+    var experience = DATA.experience || {};
+    var questions = experience.questions || [];
+    var hero = el('div', 'result-hero');
+    hero.appendChild(el('div', 'result-label', currentVersion + ' · ' + (meta.active ? words('当前使用版本','Active version') : words('历史或候选版本','Historical or candidate version'))));
+    hero.appendChild(el('h1', '', words('理解这份数据，从一个问题开始','Understand your data, one question at a time')));
+    hero.appendChild(el('p', '', experience.summary || words('语义结构已保存。此版本尚未记录结果摘要。','Semantic structure is stored. No outcome summary was recorded for this version.')));
+    var steps = el('div', 'result-steps');
+    steps.appendChild(el('span','result-step',words('语义对象：','Semantic objects: ') + Object.keys(meta.counts || {}).reduce(function(n,k){return n + meta.counts[k];},0)));
+    steps.appendChild(el('span','result-step',words('关联问题：','Linked questions: ') + questions.length));
+    var executed = questions.filter(function(q){return (q.tasks || []).some(function(t){return t.task_status === 'completed';});}).length;
+    steps.appendChild(el('span','result-step',words('已执行问题：','Executed questions: ') + executed));
+    hero.appendChild(steps);
+    hero.appendChild(el('p','result-label',words('建立语义关联、完成执行与独立验证是不同阶段；执行完成不代表答案正确。','Semantic coverage, execution and independent validation are distinct stages; completion does not establish correctness.')));
+    view.appendChild(hero);
+    if ((experience.limitations || []).length) {
+      var limits = el('div','result-card'); limits.appendChild(el('h3','',words('已知限制','Known limitations')));
+      experience.limitations.forEach(function(item){limits.appendChild(el('p','',item));}); view.appendChild(limits);
+    }
+    view.appendChild(el('h2','',words('从问题查看语义与证据','Explore semantics and evidence through questions')));
+    var grid = el('div','result-grid');
+    if (!questions.length) grid.appendChild(el('p','',words('尚无问题关联。构建或进化时保存问题与对象的关联后，可在这里查看。','No linked questions yet. Save question-to-object links during build or evolution to explore them here.')));
+    questions.forEach(function(question){
+      var card = el('article','result-card');
+      var origins = {user: words('用户问题','User question'),history:words('历史问题','Historical question'),generated:words('合成探索问题','Synthetic exploration')};
+      card.appendChild(el('div','result-label',origins[question.origin] || question.origin));
+      card.appendChild(el('h3','',question.question));
+      (question.provenance || []).forEach(function(source){
+        card.appendChild(el('p','result-label',words('来源：','Source: ') + source.source_ref));
+      });
+      var button = el('button','',words('查看关联语义','Show related semantics'));
+      button.disabled = !(question.object_ids || []).length;
+      button.addEventListener('click',function(){focusQuestion(question);}); card.appendChild(button);
+      (question.tasks || []).forEach(function(task){
+        var details = el('details',''); details.appendChild(el('summary','',words('执行记录 · ','Execution · ') + stateLabel(task.task_status)));
+        details.appendChild(el('pre','',printable(task.final_answer))); card.appendChild(details);
+      });
+      grid.appendChild(card);
+    }); view.appendChild(grid);
+    view.appendChild(el('h2','',words('进化与效果','Evolution and outcomes')));
+    var runs = experience.runs || [];
+    if (!runs.length) view.appendChild(el('p','',words('尚无独立进化评估记录。','No independent evolution evaluation has been recorded.')));
+    runs.slice().reverse().forEach(function(run){
+      var card = el('article','result-card');
+      card.appendChild(el('h3','',run.run_id + ' · ' + stateLabel(run.status)));
+      card.appendChild(el('p','',run.parent_version + ' → ' + (run.accepted_version || run.current_candidate || '—')));
+      card.appendChild(el('p','result-label',words('已运行轮数 / 预算：','Rounds / budget: ') + run.round + ' / ' + ((run.budget || {}).max_rounds || '—')));
+      if (run.end_reason) card.appendChild(el('p','',words('保留原版本：','Parent retained: ') + stateLabel(run.end_reason)));
+      (run.evaluations || []).forEach(function(evaluation){
+        card.appendChild(el('p','result-label',evaluation.subject + ' · ' + evaluation.role + ' · ' + (evaluation.provenance || words('来源未标注','Unspecified provenance'))));
+        card.appendChild(el('pre','',printable(evaluation.metrics)));
+      });
+      var right = run.accepted_version || run.current_candidate;
+      if (VERSION_DATA[run.parent_version] && VERSION_DATA[right]) {
+        var compare = el('button','',words('查看本轮结构变化','Compare this run'));
+        compare.addEventListener('click',function(){
+          if (compareActive) exitCompare(); switchVersion(run.parent_version);
+          $('#compare-version-select').value = right; enterCompare();
+        }); card.appendChild(compare);
+        var leftQuestions = ((VERSION_DATA[run.parent_version].experience || {}).questions || []);
+        var rightQuestions = ((VERSION_DATA[right].experience || {}).questions || []);
+        leftQuestions.forEach(function(before){
+          var after = rightQuestions.find(function(q){return q.id === before.id;});
+          if (!after || !(before.tasks || []).length || !(after.tasks || []).length) return;
+          var pair = el('details',''); pair.appendChild(el('summary','',before.question));
+          pair.appendChild(el('p','result-label',words('公开任务回放；结果差异不等于经过验证的改善。','Public task replays; output differences alone do not establish improvement.')));
+          var columns = el('div','result-grid');
+          [before,after].forEach(function(q,i){var side=el('div','result-card');side.appendChild(el('h3','',i ? right : run.parent_version));side.appendChild(el('pre','',printable(q.tasks[q.tasks.length-1].final_answer)));columns.appendChild(side);});
+          pair.appendChild(columns); card.appendChild(pair);
+        });
+      }
+      view.appendChild(card);
+    });
+  }
+
   /* ================= language switching ================= */
 
   function applyI18n() {
@@ -3105,6 +3252,7 @@ window.EVO_DATA = __DATA_JSON__;
     renderLegend();
     buildSchemaView();
     buildToolView();
+    buildOverview();
     if (lastDetail) {
       lastDetail();
     } else {
@@ -3147,6 +3295,8 @@ window.EVO_DATA = __DATA_JSON__;
     }
   } catch (e) { /* ignore malformed URL */ }
 
+  if (!(new URLSearchParams(window.location.search).get('compare'))) showView('overview');
+
   /* ---- duplicate-tab guard ----------------------------------------------
      visualize_ontology opens the browser exactly once. If the same rendered
      page gets opened a second time (a duplicate open), show a clear notice
@@ -3187,7 +3337,7 @@ window.EVO_DATA = __DATA_JSON__;
   if (!welcomeHidden) {
     try { welcomeHidden = window.localStorage.getItem(WELCOME_KEY) === '1'; } catch (e) { /* ignore */ }
   }
-  if (!welcomeHidden) openWelcome();
+  if (!welcomeHidden && new URLSearchParams(window.location.search).get('welcome') === '1') openWelcome();
 })();
 </script>
 </body>

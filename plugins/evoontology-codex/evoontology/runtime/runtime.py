@@ -17,10 +17,36 @@ _ACTIVE_STATES = {"validated", "active"}
 _DEFAULT_TOOLS = ["browse_semantics", "resolve_semantics"]
 _MAX_BROWSE_ITEMS = 6
 _MAX_RESOLVE = 5
+_SEARCH_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "between", "by", "for",
+    "from", "how", "in", "is", "many", "of", "on", "or", "per", "that",
+    "the", "to", "was", "were", "what", "when", "where", "which", "who",
+    "with",
+}
 
 
 def _tokens(text: str) -> set:
-    return set(re.findall(r"\w+", str(text).lower(), flags=re.UNICODE))
+    tokens = set()
+    normalized = str(text).lower().replace("_", " ")
+    for token in re.findall(r"\w+", normalized, flags=re.UNICODE):
+        if len(token) <= 1 or token in _SEARCH_STOPWORDS:
+            continue
+        if len(token) > 4 and token.endswith("ies"):
+            token = token[:-3] + "y"
+        elif len(token) > 3 and token.endswith("s") and not token.endswith(
+            ("ss", "us", "is")
+        ):
+            token = token[:-1]
+        tokens.add(token)
+    return tokens
+
+
+def _has_contradictory_tokens(query_tokens: set, concept_tokens: set) -> bool:
+    """Reject concepts whose categorical qualifier contradicts the query."""
+    pairs = (("monthly", "weekly"), ("weekly", "monthly"),
+             ("male", "female"), ("female", "male"),
+             ("before", "after"), ("after", "before"))
+    return any(q in query_tokens and c in concept_tokens for q, c in pairs)
 
 
 def _is_active(item: Any) -> bool:
@@ -72,7 +98,7 @@ class SemanticLayer:
             return (
                 "Ontology layer: uninitialized.\n\n"
                 "No ontology has been built for this workspace yet. Run "
-                "/evo-build to create the initial semantic version."
+                "Build Ontology to create the initial semantic version."
             )
         counts = self.store.counts()
         active_constraints = [
@@ -169,6 +195,8 @@ class SemanticLayer:
         ranked = []
         for item in items:
             search_text = item.pop("_search_text", "")
+            if _has_contradictory_tokens(query_tokens, _tokens(search_text)):
+                continue
             overlap = sorted(query_tokens & _tokens(search_text))
             phrase_match = query in search_text.lower()
             if not overlap and not phrase_match:
@@ -313,7 +341,9 @@ class SemanticLayer:
                 exact_name.append((term, f"exact name match: '{term.name}'"))
             elif any(mention == a.lower() for a in (term.aliases or [])):
                 exact_alias.append((term, f"exact alias match: term '{term.name}'"))
-            elif mention in name_lower or any(mention in a.lower() for a in (term.aliases or [])):
+            elif _tokens(mention) and _tokens(mention).issubset(
+                _tokens(" ".join([name_lower, *(term.aliases or [])]))
+            ):
                 substring.append((term, f"substring match: term '{term.name}'"))
 
         if exact_name:

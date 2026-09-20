@@ -80,7 +80,7 @@ def test_visualize_ontology_opens_browser_by_default(tmp_path, monkeypatch):
     import evoontology.visualization.renderer as renderer
 
     opened = []
-    monkeypatch.setattr(renderer.webbrowser, "open", lambda url: opened.append(url))
+    monkeypatch.setattr(renderer.webbrowser, "open", lambda url: opened.append(url) or True)
     ws = _ws(tmp_path)
     _save_active(ws)
     result = ops.execute("visualize_ontology", {"workspace": ws})
@@ -101,10 +101,12 @@ def test_evolution_accept_flow(tmp_path):
     ops.execute("save_version", {"workspace": ws, "version": "v0-c1", "records": candidate})
     ops.execute("record_evolution_evaluation", {"workspace": ws, "subject": "v0-c1", "result": {"metrics": {"ex": 0.6}}, "role": "candidate"})
 
+    ops.execute("record_evolution_evaluation", {"workspace": ws, "subject": "v0-c1", "role": "candidate", "result": {"metrics": {"ex": 0.6}, "gate_input": {
+        "protocol": "ground_truth", "case_ids": ["case1"], "parent_scores": [0.4], "candidate_scores": [0.6], "unacceptable_regressions": False}}})
     accepted = ops.execute("accept_evolution", {"workspace": ws})
     assert accepted["accepted_version"] == "ontology_v1"
     assert SemanticStore.active_version(ws) == "ontology_v1"
-    assert ops.execute("finalize_evolution_run", {"workspace": ws})["status"] == "accepted"
+    assert ops.execute("finalize_evolution_run", {"workspace": ws, "open_browser": False})["status"] == "accepted"
 
 
 def test_record_reject_keeps_run_running(tmp_path):
