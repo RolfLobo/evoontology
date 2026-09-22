@@ -17,7 +17,7 @@
 
 
 <p align="center">
-  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">绠€浣撲腑鏂?/a>
+  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">简体中文</a>>
 </p>
 
 
@@ -179,7 +179,7 @@ EvoOntology includes self-contained adapters for three complementary Data Agent 
 
 Each environment implements an `EvolutionAdapter` and preserves its native rollout and evaluation protocol. List registered environments with `python -m benchmarks list`; see [Adding a benchmark](docs/guide/new-benchmark.md) for the integration contract.
 
-## 馃梻锔?Repository Layout
+## 🗂️ Repository Layout
 
 | Path | Purpose |
 | --- | --- |
