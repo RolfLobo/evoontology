@@ -12,6 +12,7 @@
   <a href="https://github.com/ruc-datalab/EvoOntology/stargazers"><img src="https://img.shields.io/github/stars/ruc-datalab/EvoOntology?style=flat&amp;logo=github&amp;color=3941EA" alt="GitHub stars"></a>
   <a href="https://github.com/ruc-datalab/EvoOntology/forks"><img src="https://img.shields.io/github/forks/ruc-datalab/EvoOntology?style=flat&amp;logo=github&amp;color=3941EA" alt="GitHub forks"></a>
   <a href="https://hitscounter.dev/history?url=https%3A%2F%2Fgithub.com%2Fruc-datalab%2FEvoOntology"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fruc-datalab%2FEvoOntology&amp;label=Views&amp;icon=graph-up&amp;color=%233941ea&amp;message=&amp;style=flat&amp;tz=Asia%2FShanghai" alt="Page views: today / total"></a>
+  <a href="assets/feishu.jpg"><img src="https://img.shields.io/badge/Feishu-%E5%8A%A0%E5%85%A5RUC--DataLab%E4%BA%A4%E6%B5%81%E7%BE%A4-black?logo=lark&amp;logoColor=00D6B9" alt="Join the RUC-DataLab Feishu group"></a>
 </p>
 
 
@@ -226,4 +227,3 @@ If you have any questions, please feel free to submit an issue or contact `zhang
     </picture>
   </a>
 </p>
-
