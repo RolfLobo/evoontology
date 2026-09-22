@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="assets/logo.png" alt="EvoOntology" width="68%">
 </p>
 
@@ -17,7 +17,7 @@
 
 
 <p align="center">
-  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">简体中文</a>
+  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">绠€浣撲腑鏂?/a>
 </p>
 
 
@@ -25,18 +25,18 @@
 > Renmin University of China<br>
 
 EvoOntology is the first self-evolving ontology layer for data agents, aiming to bridge the **agent-data gap** over heterogeneous tables, files, and databases. It exposes a versioned **Ontology Layer through MCP tools**, grounds that layer in real workload evidence, and continuously adapts it from execution trajectories.
-- 🔌 Universal Agent Plugin as MCP: Seamlessly integrates with Claude Code, Codex, and other AI agents.
-- 🤖 Automatic Ontology Construction: Builds a tailored ontology layer directly from your data.
-- ♻️ Continuous Self-Evolution: Continuously evolves and refines the ontology layer based on interaction history.
+- 馃攲 Universal Agent Plugin as MCP: Seamlessly integrates with Claude Code, Codex, and other AI agents.
+- 馃 Automatic Ontology Construction: Builds a tailored ontology layer directly from your data.
+- 鈾伙笍 Continuous Self-Evolution: Continuously evolves and refines the ontology layer based on interaction history.
 
 
-## 🎬 Demo
+## 馃幀 Demo
 
 The Codex and Claude Code plugins build and evolve ontology layers over your data.
 
 https://github.com/user-attachments/assets/e15f4acd-7161-4ae1-ba41-f2f3ea05488b
 
-## 🧭 EvoOntology Makes Your Data Valuable!
+## 馃Л EvoOntology Makes Your Data Valuable!
 
 - **Raw data leaves semantics implicit.** Table names, columns, file paths, and isolated observations rarely explain metric definitions, entity relationships, or business constraints. Agents must infer them repeatedly and are prone to semantic errors.
 - **Static semantic layers do not scale with use.** Hand-authored layers require sustained expert maintenance, become stale as data and workloads change, and consume increasing context when injected in full.
@@ -49,15 +49,15 @@ https://github.com/user-attachments/assets/e15f4acd-7161-4ae1-ba41-f2f3ea05488b
 <p align="center"><strong>An agent-first, self-evolving ontology layer for Data Agents.</strong></p>
 
 
-## ✨ Why EvoOntology?
+## 鉁?Why EvoOntology?
 
-### 🎯 Problems We Address
+### 馃幆 Problems We Address
 
 - **Semantic uncertainty.** Make domain concepts, data mappings, relationships, and constraints explicit instead of leaving agents to guess from raw sources.
 - **Repeated data exploration.** Reuse grounded knowledge across tasks so agents can focus on relevant data rather than rediscovering the environment for every request.
 - **Costly semantic maintenance.** Adapt the Ontology Layer to changing workloads and agent behavior while keeping updates inspectable, comparable, and reversible.
 
-### 🧩 Design Highlights
+### 馃З Design Highlights
 
 | Principle | Core idea |
 | --- | --- |
@@ -67,15 +67,15 @@ https://github.com/user-attachments/assets/e15f4acd-7161-4ae1-ba41-f2f3ea05488b
 | **Gated versioning** | Publish a Candidate only when paired evaluation shows a reproducible improvement over its Parent. |
 | **Agent integration** | Connect the ontology workspace and MCP runtime directly to supported agents through plugins. |
 
-## ⚙️ How It Works?
+## 鈿欙笍 How It Works?
 
-EvoOntology treats the Ontology Layer as trainable agent state—not model weights. A builder initializes grounded semantic objects from the workload and underlying data; an evolution agent then uses historical interactions to propose bounded updates and validates every Candidate against its Parent.
+EvoOntology treats the Ontology Layer as trainable agent state鈥攏ot model weights. A builder initializes grounded semantic objects from the workload and underlying data; an evolution agent then uses historical interactions to propose bounded updates and validates every Candidate against its Parent.
 
 <p align="center">
   <img src="assets/evoontology-framework.png" alt="EvoOntology builder and evolution framework" width="100%">
 </p>
 
-### 🧠 The Ontology Layer
+### 馃 The Ontology Layer
 
 Three interconnected layers define the ontology's knowledge, representation rules, and runtime access:
 
@@ -105,19 +105,19 @@ Three interconnected layers define the ontology's knowledge, representation rule
 
 <p align="center"><sub>Click any screenshot to open the full-resolution view.</sub></p>
 
-### 🔄 Lifecycle
+### 馃攧 Lifecycle
 
-1. **Build** — derive candidate concepts from the workload, verify them against raw sources, and publish `ontology_v0`.
-2. **Use** — let the Data Agent query the Ontology Layer on demand while its tool interactions and outcomes are recorded.
-3. **Evolve** — diagnose recurring behavior, attribute it to Content, Tool, or Schema, and produce a localized Candidate patch.
-4. **Evaluate** — compare Parent and Candidate with the same data, agent, decoding settings, and interaction budget.
-5. **Publish or reject** — publish the passing Candidate as `ontology_vN+1`; otherwise retain the Parent and use the result in the next round.
+1. **Build** 鈥?derive candidate concepts from the workload, verify them against raw sources, and publish `ontology_v0`.
+2. **Use** 鈥?let the Data Agent query the Ontology Layer on demand while its tool interactions and outcomes are recorded.
+3. **Evolve** 鈥?diagnose recurring behavior, attribute it to Content, Tool, or Schema, and produce a localized Candidate patch.
+4. **Evaluate** 鈥?compare Parent and Candidate with the same data, agent, decoding settings, and interaction budget.
+5. **Publish or reject** 鈥?publish the passing Candidate as `ontology_vN+1`; otherwise retain the Parent and use the result in the next round.
 
-## 🚀 Quick Start
+## 馃殌 Quick Start
 
-Install the plugin from the GitHub marketplace—no repository clone, virtual environment, or separate `pip install` is required.
+Install the plugin from the GitHub marketplace鈥攏o repository clone, virtual environment, or separate `pip install` is required.
 
-### 🤖 Claude Code
+### 馃 Claude Code
 
 ```bash
 claude plugin marketplace add MeiduoChong/EvoOntology
@@ -133,7 +133,7 @@ Start a new session, then run:
 /evo-visualize
 ```
 
-### 🤖 Codex
+### 馃 Codex
 
 ```bash
 codex plugin marketplace add MeiduoChong/EvoOntology
@@ -155,7 +155,7 @@ Codex prepares questions from user needs, relevant project history and grounded 
 Once built, the Data Agent can call `browse_semantics` and `resolve_semantics` without additional ontology configuration. See the [usage guide](USAGE.md) for the full workflow and data boundaries.
 
 
-## 📊 Performance
+## 馃搳 Performance
 
 Across the four-backbone analysis subset, the builder-constructed **Initial Ontology Layer** improves over **ReAct without an Ontology Layer**, and self-evolution produces a further gain with **EvoOntology** on all three benchmarks.
 
@@ -167,7 +167,7 @@ Across the four-backbone analysis subset, the builder-constructed **Initial Onto
 
 <p align="center"><sub>Results use the four-backbone analysis subset in the <a href="https://arxiv.org/abs/2609.15779">paper</a>: GPT-5.5, GPT-5.6-sol, Claude-Sonnet-5, and Claude-Opus-4.8. DDR-Bench values are reported directly in Tables 2 and 8; InsightBench and BIRD values are one-decimal means of the Figure 3 scores and match the stage gains stated in the accompanying analysis. See Tables 1, 3, and 4 for the full six-backbone results and evaluation protocols.</sub></p>
 
-### 🧪 Evaluation Environments
+### 馃И Evaluation Environments
 
 EvoOntology includes self-contained adapters for three complementary Data Agent settings:
 
@@ -179,7 +179,7 @@ EvoOntology includes self-contained adapters for three complementary Data Agent 
 
 Each environment implements an `EvolutionAdapter` and preserves its native rollout and evaluation protocol. List registered environments with `python -m benchmarks list`; see [Adding a benchmark](docs/guide/new-benchmark.md) for the integration contract.
 
-## 🗂️ Repository Layout
+## 馃梻锔?Repository Layout
 
 | Path | Purpose |
 | --- | --- |
@@ -190,15 +190,15 @@ Each environment implements an `EvolutionAdapter` and preserves its native rollo
 | [`docs/`](docs/) | Architecture and benchmark-integration documentation. |
 | [`scripts/`](scripts/) | Core-to-plugin synchronization utilities. |
 
-## 📚 Documentation
+## 馃摎 Documentation
 
-- [Usage guide](USAGE.md) — installation, workspace, lifecycle, configuration, and end-to-end operation.
-- [Architecture](docs/architecture.md) — module boundaries, evolution state machine, and evaluation modes.
-- [Add a benchmark](docs/guide/new-benchmark.md) — adapter, data loader, rollout, configuration, and seed-skill contract.
-- [Claude Code plugin](plugins/claude-code/README.md) and [Codex plugin](plugins/evoontology-codex/README.md) — client-specific installation and usage.
+- [Usage guide](USAGE.md) 鈥?installation, workspace, lifecycle, configuration, and end-to-end operation.
+- [Architecture](docs/architecture.md) 鈥?module boundaries, evolution state machine, and evaluation modes.
+- [Add a benchmark](docs/guide/new-benchmark.md) 鈥?adapter, data loader, rollout, configuration, and seed-skill contract.
+- [Claude Code plugin](plugins/claude-code/README.md) and [Codex plugin](plugins/evoontology-codex/README.md) 鈥?client-specific installation and usage.
 
 
-## 🖋 Citation
+## 馃枊 Citation
 
 If this repository is useful for you, please cite as:
 
@@ -216,7 +216,12 @@ If this repository is useful for you, please cite as:
 
 If you have any questions, please feel free to submit an issue or contact `zhangshaolei98@ruc.edu.cn`.
 
-## 🌟 Misc
+## 馃専 Misc
+
+If you like EvoOntology, give it a GitHub Star ⭐
+
+Welcome to join the [RUC-DataLab Feishu group](assets/feishu.jpg), chat and share ideas with other users.
+
 
 <p align="center">
   <a href="https://www.star-history.com/#ruc-datalab/EvoOntology&amp;Date">
@@ -229,5 +234,7 @@ If you have any questions, please feel free to submit an issue or contact `zhang
 </p>
 
 <p align="center">
-  <a href="assets/feishu.jpg"><img src="assets/feishu.jpg" alt="RUC-DataLab Feishu group" width="360"></a>
+  <img src="assets/feishu.jpg" alt="RUC-DataLab Feishu group" width="35%">
 </p>
+
+
