@@ -227,3 +227,7 @@ If you have any questions, please feel free to submit an issue or contact `zhang
     </picture>
   </a>
 </p>
+
+<p align="center">
+  <a href="assets/feishu.jpg"><img src="assets/feishu.jpg" alt="RUC-DataLab Feishu group" width="360"></a>
+</p>
