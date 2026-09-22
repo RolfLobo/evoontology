@@ -17,7 +17,7 @@
 
 
 <p align="center">
-  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">简体中文</a>>
+  <a href="README.md"><strong>English</strong></a> | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 
@@ -49,7 +49,7 @@ https://github.com/user-attachments/assets/e15f4acd-7161-4ae1-ba41-f2f3ea05488b
 <p align="center"><strong>An agent-first, self-evolving ontology layer for Data Agents.</strong></p>
 
 
-## 鉁?Why EvoOntology?
+## ✨ Why EvoOntology?
 
 ### 🎯 Problems We Address
 
@@ -107,11 +107,11 @@ Three interconnected layers define the ontology's knowledge, representation rule
 
 ### 🔄 Lifecycle
 
-1. **Build** 鈥?derive candidate concepts from the workload, verify them against raw sources, and publish `ontology_v0`.
-2. **Use** 鈥?let the Data Agent query the Ontology Layer on demand while its tool interactions and outcomes are recorded.
-3. **Evolve** 鈥?diagnose recurring behavior, attribute it to Content, Tool, or Schema, and produce a localized Candidate patch.
-4. **Evaluate** 鈥?compare Parent and Candidate with the same data, agent, decoding settings, and interaction budget.
-5. **Publish or reject** 鈥?publish the passing Candidate as `ontology_vN+1`; otherwise retain the Parent and use the result in the next round.
+1. **Build** —derive candidate concepts from the workload, verify them against raw sources, and publish `ontology_v0`.
+2. **Use** —let the Data Agent query the Ontology Layer on demand while its tool interactions and outcomes are recorded.
+3. **Evolve** —diagnose recurring behavior, attribute it to Content, Tool, or Schema, and produce a localized Candidate patch.
+4. **Evaluate** —compare Parent and Candidate with the same data, agent, decoding settings, and interaction budget.
+5. **Publish or reject** —publish the passing Candidate as `ontology_vN+1`; otherwise retain the Parent and use the result in the next round.
 
 ## 🚀 Quick Start
 
@@ -192,10 +192,10 @@ Each environment implements an `EvolutionAdapter` and preserves its native rollo
 
 ## 📚 Documentation
 
-- [Usage guide](USAGE.md) 鈥?installation, workspace, lifecycle, configuration, and end-to-end operation.
-- [Architecture](docs/architecture.md) 鈥?module boundaries, evolution state machine, and evaluation modes.
-- [Add a benchmark](docs/guide/new-benchmark.md) 鈥?adapter, data loader, rollout, configuration, and seed-skill contract.
-- [Claude Code plugin](plugins/claude-code/README.md) and [Codex plugin](plugins/evoontology-codex/README.md) 鈥?client-specific installation and usage.
+- [Usage guide](USAGE.md) —installation, workspace, lifecycle, configuration, and end-to-end operation.
+- [Architecture](docs/architecture.md) —module boundaries, evolution state machine, and evaluation modes.
+- [Add a benchmark](docs/guide/new-benchmark.md) —adapter, data loader, rollout, configuration, and seed-skill contract.
+- [Claude Code plugin](plugins/claude-code/README.md) and [Codex plugin](plugins/evoontology-codex/README.md) —client-specific installation and usage.
 
 
 ## 🖋 Citation
