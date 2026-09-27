@@ -23,7 +23,7 @@ evolution）由插件内置的 `evoontology/` 核心包提供，与仓库根保�
 ## 安装
 
 ```bash
-claude plugin marketplace add MeiduoChong/EvoOntology
+claude plugin marketplace add ruc-datalab/EvoOntology
 claude plugin marketplace list
 claude plugin install evoontology@evoontology
 claude plugin list

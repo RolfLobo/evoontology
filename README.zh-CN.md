@@ -119,7 +119,7 @@ Ontology Layer 由三个相互关联的层组成，分别定义语义知识、�
 ### 🤖 Claude Code
 
 ```bash
-claude plugin marketplace add MeiduoChong/EvoOntology
+claude plugin marketplace add ruc-datalab/EvoOntology
 claude plugin install evoontology@evoontology
 claude plugin list
 ```
@@ -135,7 +135,7 @@ claude plugin list
 ### 🤖 Codex
 
 ```bash
-codex plugin marketplace add MeiduoChong/EvoOntology
+codex plugin marketplace add ruc-datalab/EvoOntology
 codex plugin add evoontology-codex@evoontology
 codex plugin list
 ```

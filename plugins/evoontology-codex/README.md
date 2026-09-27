@@ -18,7 +18,7 @@
 ## 安装
 
 ```bash
-codex plugin marketplace add MeiduoChong/EvoOntology
+codex plugin marketplace add ruc-datalab/EvoOntology
 codex plugin add evoontology-codex@evoontology
 codex plugin list
 ```

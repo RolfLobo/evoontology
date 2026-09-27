@@ -1,0 +1,20 @@
+{
+  "name": "evoontology",
+  "interface": {
+    "displayName": "EvoOntology"
+  },
+  "plugins": [
+    {
+      "name": "evoontology-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/evoontology-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

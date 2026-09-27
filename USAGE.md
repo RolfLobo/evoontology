@@ -23,7 +23,7 @@ skill，Python 只做「运行时 + 最小确定性校验 + 进化生命周期�
 ### Claude Code
 
 ```bash
-claude plugin marketplace add MeiduoChong/EvoOntology
+claude plugin marketplace add ruc-datalab/EvoOntology
 claude plugin marketplace list
 claude plugin install evoontology@evoontology
 claude plugin list
@@ -32,7 +32,7 @@ claude plugin list
 ### Codex
 
 ```bash
-codex plugin marketplace add MeiduoChong/EvoOntology
+codex plugin marketplace add ruc-datalab/EvoOntology
 codex plugin marketplace list
 codex plugin add evoontology-codex@evoontology
 codex plugin list

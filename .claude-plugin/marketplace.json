@@ -1,0 +1,17 @@
+{
+  "name": "evoontology",
+  "description": "EvoOntology: a self-evolving ontology layer for data agents. Install with `claude plugin install evoontology@evoontology`.",
+  "owner": {
+    "name": "RUC DataLab",
+    "url": "https://github.com/ruc-datalab"
+  },
+  "plugins": [
+    {
+      "name": "evoontology",
+      "source": "./plugins/claude-code",
+      "description": "Self-evolving ontology layer for data agents: /evo-build, /evo-evolve, and /evo-visualize commands, builder/evolver skills, a semantic MCP runtime, and a session-start evolution reminder.",
+      "category": "data",
+      "tags": ["ontology", "ontology-layer", "self-evolution", "data-agent", "text-to-sql", "mcp"]
+    }
+  ]
+}

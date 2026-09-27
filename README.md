@@ -120,7 +120,7 @@ Install the plugin from the GitHub marketplace—no repository clone, virtual en
 ### 🤖 Claude Code
 
 ```bash
-claude plugin marketplace add MeiduoChong/EvoOntology
+claude plugin marketplace add ruc-datalab/EvoOntology
 claude plugin install evoontology@evoontology
 claude plugin list
 ```
@@ -136,7 +136,7 @@ Start a new session, then run:
 ### 🤖 Codex
 
 ```bash
-codex plugin marketplace add MeiduoChong/EvoOntology
+codex plugin marketplace add ruc-datalab/EvoOntology
 codex plugin add evoontology-codex@evoontology
 codex plugin list
 ```

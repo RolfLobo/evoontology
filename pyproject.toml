@@ -21,9 +21,9 @@ bird = ["httpx>=0.27,<1", "openai>=1,<3", "python-dotenv>=1,<2", "pyyaml>=6,<7"]
 evoontology-validate = "evoontology.validate:main"
 
 [project.urls]
-Homepage = "https://github.com/MeiduoChong/EvoOntology"
-Repository = "https://github.com/MeiduoChong/EvoOntology"
-Issues = "https://github.com/MeiduoChong/EvoOntology/issues"
+Homepage = "https://github.com/ruc-datalab/EvoOntology"
+Repository = "https://github.com/ruc-datalab/EvoOntology"
+Issues = "https://github.com/ruc-datalab/EvoOntology/issues"
 
 [tool.setuptools.packages.find]
 include = ["evoontology", "evoontology.*"]
