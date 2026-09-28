@@ -48,6 +48,25 @@ def test_start_run_records_frozen_budget(tmp_path):
         EvolutionSession(str(ws)).start_run("ontology_v0")
 
 
+def test_external_run_and_version_identifiers_are_contained(tmp_path):
+    ws = _setup(tmp_path)
+    session = EvolutionSession(str(ws))
+    with pytest.raises(ValueError, match="single path component"):
+        session.start_run("../ontology_v0")
+    with pytest.raises(ValueError, match="single path component"):
+        session.resume("../run_1")
+
+
+def test_begin_round_requires_hypothesis_and_contained_candidate(tmp_path):
+    ws = _setup(tmp_path)
+    session = EvolutionSession(str(ws))
+    session.start_run("ontology_v0")
+    with pytest.raises(ValueError, match="hypothesis is required"):
+        session.begin_round("", "v0-c1")
+    with pytest.raises(ValueError, match="single path component"):
+        session.begin_round("hypothesis", "../v0-c1")
+
+
 def test_budget_defaults_to_eight_rounds(tmp_path):
     ws = _setup(tmp_path)
     session = EvolutionSession(str(ws))
@@ -367,6 +386,16 @@ def test_record_evaluation_normalizes_and_rejects_bad_result(tmp_path):
     assert summary["artifact_paths"] == []
     with pytest.raises(ValueError):
         session.record_evaluation("v0-c1", {"cases": []})
+
+
+def test_record_evaluation_requires_running_run(tmp_path):
+    ws = _setup(tmp_path)
+    session = EvolutionSession(str(ws))
+    session.start_run("ontology_v0")
+    session.begin_round("h", "v0-c1")
+    session.mark_incomplete("user_interrupted")
+    with pytest.raises(EvolutionError, match="only a running run can continue"):
+        session.record_evaluation("v0-c1", {"metrics": {"ex": 0.5}})
 
 
 def test_normalize_result_contract():

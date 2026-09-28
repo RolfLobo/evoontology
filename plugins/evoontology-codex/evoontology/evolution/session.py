@@ -29,7 +29,13 @@ from typing import Any, Dict, List, Optional
 
 from ..ontology.store import SemanticStore
 from ..trigger.trigger import EvolutionTrigger
-from ..workspace import PathLike, ensure_workspace, load_project, resolve_workspace
+from ..workspace import (
+    PathLike,
+    ensure_workspace,
+    load_project,
+    resolve_workspace,
+    validate_path_component,
+)
 from .adapter import normalize_result
 from ..evaluation.evaluation import EvaluationGate
 from ..validate import validate
@@ -115,6 +121,7 @@ class EvolutionSession:
         """
         if not str(parent_version or "").strip():
             raise ValueError("parent_version is required")
+        parent_version = validate_path_component(parent_version, label="parent_version")
         running = self.latest_run()
         if running is not None and running.get("status") == RUNNING:
             raise EvolutionError(
@@ -127,7 +134,7 @@ class EvolutionSession:
             "schema_version": RUN_SCHEMA_VERSION,
             "run_id": run_id,
             "status": RUNNING,
-            "parent_version": str(parent_version),
+            "parent_version": parent_version,
             "adapter": str(adapter or ""),
             "acceptance": acceptance or {},
             "budget": self._resolve_budget(max_rounds),
@@ -206,9 +213,15 @@ class EvolutionSession:
                 f"Budget exhausted after {run['round']} rounds; extend the "
                 "budget (with user confirmation) or end the run"
             )
+        normalized_hypothesis = str(hypothesis or "").strip()
+        if not normalized_hypothesis:
+            raise ValueError("hypothesis is required")
+        candidate_version = validate_path_component(
+            str(candidate_version or "").strip(), label="candidate_version"
+        )
         run["round"] += 1
-        run["current_hypothesis"] = str(hypothesis or "")
-        run["current_candidate"] = str(candidate_version or "")
+        run["current_hypothesis"] = normalized_hypothesis
+        run["current_candidate"] = candidate_version
         self._save_run()
         return int(run["round"])
 
@@ -297,12 +310,12 @@ class EvolutionSession:
         their benchmark/user location; only the summary and path references
         are copied into the run.
         """
-        self._require_run()
+        run = self._require_running()
         normalized = normalize_result(result)
         summary = {
             "subject": str(subject),
             "role": str(role or ""),
-            "round": int(self._require_run()["round"]),
+            "round": int(run["round"]),
             "metrics": normalized.get("metrics", {}),
             "cases": normalized.get("cases", []),
             "artifact_paths": normalized.get("artifact_paths", []),
@@ -513,7 +526,7 @@ class EvolutionSession:
         return self.workspace / "evolution"
 
     def _run_dir_for(self, run_id: str) -> Path:
-        return self._evolution_dir() / run_id
+        return self._evolution_dir() / validate_path_component(run_id, label="run_id")
 
     def _next_run_number(self) -> int:
         latest = self.latest_run()
