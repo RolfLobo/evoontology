@@ -14,7 +14,7 @@ import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from ..workspace import ensure_workspace, resolve_workspace
+from ..workspace import ensure_workspace, resolve_workspace, validate_path_component
 from .models import Constraint, Evidence, Mapping, Relation, Term
 
 PathLike = Union[str, Path]
@@ -89,7 +89,9 @@ class SemanticStore:
         model objects without reimplementing the on-disk store contract.
         """
         workspace = resolve_workspace(path)
-        selected_version = version or cls.active_version(workspace)
+        selected_version = validate_path_component(
+            version or cls.active_version(workspace), label="version"
+        )
         version_dir = workspace / "versions" / selected_version
         missing = [
             filename for filename, _ in _FAMILIES.values()
@@ -115,7 +117,7 @@ class SemanticStore:
         version = str(active.get("active_version") or active.get("version") or "").strip()
         if not version:
             raise ValueError(f"Missing active_version in {active_file}")
-        return version
+        return validate_path_component(version, label="active version")
 
     # ---- writing -----------------------------------------------------------
 
@@ -129,21 +131,28 @@ class SemanticStore:
         ``relations`` / ``constraints`` / ``evidence``) to a list of raw record
         dicts. Returns the absolute path of the written version directory.
         """
-        root = ensure_workspace(path)
-        version_dir = root / "versions" / version
-        version_dir.mkdir(parents=True, exist_ok=True)
+        version = validate_path_component(version, label="version")
+        serialized = {}
         for family, (filename, _) in _FAMILIES.items():
             items = records.get(family, [])
             if not isinstance(items, list):
                 raise TypeError(f"records[{family!r}] must be a list")
-            (version_dir / filename).write_text(
-                json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
+            serialized[filename] = json.dumps(items, ensure_ascii=False, indent=2)
+
+        root = ensure_workspace(path)
+        version_dir = root / "versions" / version
+        version_dir.mkdir(parents=True, exist_ok=True)
+        for filename, payload in serialized.items():
+            destination = version_dir / filename
+            temporary = destination.with_suffix(destination.suffix + ".tmp")
+            temporary.write_text(payload, encoding="utf-8")
+            temporary.replace(destination)
         return str(version_dir)
 
     @classmethod
     def set_active(cls, path: Optional[PathLike], version: str) -> None:
         """Point ``active.json`` at ``version``."""
+        version = validate_path_component(version, label="version")
         root = ensure_workspace(path)
         version_dir = root / "versions" / version
         if not version_dir.is_dir():
@@ -164,6 +173,10 @@ class SemanticStore:
         (written via :meth:`save_version`). Rejects are simply "do not promote":
         ``active.json`` keeps pointing at the parent. Returns the new version name.
         """
+        candidate_version = validate_path_component(
+            candidate_version, label="candidate version"
+        )
+        new_version = validate_path_component(new_version, label="new version")
         root = resolve_workspace(path)
         src = root / "versions" / candidate_version
         if not src.is_dir():
@@ -183,6 +196,10 @@ class SemanticStore:
         identical content makes the call a safe retry, different content raises
         ``FileExistsError``. Returns the published version name.
         """
+        candidate_version = validate_path_component(
+            candidate_version, label="candidate version"
+        )
+        new_version = validate_path_component(new_version, label="new version")
         root = resolve_workspace(path)
         src = root / "versions" / candidate_version
         if not src.is_dir():

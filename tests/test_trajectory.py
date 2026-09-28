@@ -83,3 +83,19 @@ def test_append_requires_task_id(tmp_path):
     store = TrajectoryStore(str(tmp_path))
     with pytest.raises(ValueError):
         store.append({"question": "no id"})
+
+
+@pytest.mark.parametrize("task_id", ["../escape", "..\\escape", "/absolute", ".", ".."])
+def test_task_identifiers_must_be_single_path_components(tmp_path, task_id):
+    store = TrajectoryStore(str(tmp_path))
+    with pytest.raises(ValueError, match="single path component"):
+        store.append(_traj(task_id, "2026-08-01T00:00:00+00:00"))
+    with pytest.raises(ValueError, match="single path component"):
+        store.load(task_id)
+
+
+def test_task_identifiers_remain_naming_agnostic(tmp_path):
+    store = TrajectoryStore(str(tmp_path))
+    task_id = "任务 草稿 1"
+    store.append(_traj(task_id, "2026-08-01T00:00:00+00:00"))
+    assert store.load(task_id)["task_id"] == task_id

@@ -3,13 +3,33 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Optional, Union
 
 PathLike = Union[str, Path]
 WORKSPACE_DIRNAME = ".evoontology"
 PROJECT_SCHEMA_VERSION = 1
 PROJECT_MODES = {"fixed_split", "rolling_trajectory"}
+
+
+def validate_path_component(value: Any, *, label: str = "identifier") -> str:
+    """Return one safe path component without imposing a naming convention."""
+    if value is None:
+        raise ValueError(f"{label} must be a single path component")
+    text = str(value)
+    windows = PureWindowsPath(text)
+    if (
+        not text
+        or text in {".", ".."}
+        or "\x00" in text
+        or "/" in text
+        or "\\" in text
+        or PurePosixPath(text).is_absolute()
+        or bool(windows.drive)
+        or bool(windows.root)
+    ):
+        raise ValueError(f"{label} must be a single path component")
+    return text
 
 
 def resolve_workspace(
@@ -46,6 +66,7 @@ def resolve_workspace_for_version(
     must continue to use :func:`resolve_workspace` with an exact destination.
     """
     requested = str(version or "active").strip() or "active"
+    requested = validate_path_component(requested, label="version")
     root = resolve_workspace(workspace, project_root=project_root)
     if _workspace_has_version(root, requested):
         return root
@@ -79,6 +100,7 @@ def resolve_workspace_for_version(
 
 
 def _workspace_has_version(root: Path, version: str) -> bool:
+    version = validate_path_component(version, label="version")
     if version != "active":
         return (root / "versions" / version).is_dir()
     active_file = root / "active.json"
@@ -93,7 +115,15 @@ def _workspace_has_version(root: Path, version: str) -> bool:
     active_version = str(
         active.get("active_version") or active.get("version") or ""
     ).strip()
-    return bool(active_version) and (root / "versions" / active_version).is_dir()
+    if not active_version:
+        return False
+    try:
+        active_version = validate_path_component(
+            active_version, label="active version"
+        )
+    except ValueError:
+        return False
+    return (root / "versions" / active_version).is_dir()
 
 
 def ensure_workspace(

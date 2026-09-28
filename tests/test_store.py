@@ -88,3 +88,55 @@ def test_list_versions(tmp_path):
 def test_missing_active_file(tmp_path):
     with pytest.raises(FileNotFoundError):
         SemanticStore.load(str(tmp_path))
+
+
+@pytest.mark.parametrize(
+    "bad_version",
+    ["../escape", "..\\escape", "/absolute", "C:\\absolute", ".", ".."],
+)
+def test_version_identifiers_must_be_single_path_components(tmp_path, bad_version):
+    with pytest.raises(ValueError, match="single path component"):
+        SemanticStore.save_version(tmp_path, bad_version, SAMPLE)
+    with pytest.raises(ValueError, match="single path component"):
+        SemanticStore.load_version(tmp_path, bad_version)
+    with pytest.raises(ValueError, match="single path component"):
+        SemanticStore.set_active(tmp_path, bad_version)
+
+
+def test_candidate_and_published_identifiers_are_contained(tmp_path):
+    SemanticStore.save_version(tmp_path, "candidate", SAMPLE)
+    with pytest.raises(ValueError, match="single path component"):
+        SemanticStore.publish(tmp_path, "../candidate", "ontology_v1")
+    with pytest.raises(ValueError, match="single path component"):
+        SemanticStore.publish(tmp_path, "candidate", "../ontology_v1")
+
+
+def test_store_remains_naming_agnostic(tmp_path):
+    version = "候选 草稿 1"
+    SemanticStore.save_version(tmp_path, version, SAMPLE)
+    SemanticStore.set_active(tmp_path, version)
+    assert SemanticStore.load(tmp_path).version == version
+
+
+def test_save_validates_and_serializes_every_family_before_writing(tmp_path):
+    bad_type = dict(SAMPLE)
+    bad_type["mappings"] = "not a list"
+    with pytest.raises(TypeError):
+        SemanticStore.save_version(tmp_path, "bad-type", bad_type)
+    assert not (tmp_path / "versions" / "bad-type").exists()
+
+    bad_json = {family: list(items) for family, items in SAMPLE.items()}
+    bad_json["evidence"] = [{"value": object()}]
+    with pytest.raises(TypeError):
+        SemanticStore.save_version(tmp_path, "bad-json", bad_json)
+    assert not (tmp_path / "versions" / "bad-json").exists()
+
+
+def test_save_replaces_each_record_file_without_leaving_temporaries(tmp_path):
+    SemanticStore.save_version(tmp_path, "draft", SAMPLE)
+    changed = {family: list(items) for family, items in SAMPLE.items()}
+    changed["relations"] = [{"id": "r1", "source": "t1", "target": "t1", "type": "related"}]
+    SemanticStore.save_version(tmp_path, "draft", changed)
+    version_dir = tmp_path / "versions" / "draft"
+    assert json.loads((version_dir / "relations.json").read_text(encoding="utf-8"))[0]["id"] == "r1"
+    assert not list(version_dir.glob("*.tmp"))

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..workspace import PathLike, resolve_workspace
+from ..workspace import PathLike, resolve_workspace, validate_path_component
 
 # Truncation threshold for oversized tool results (see trajectory-format.md).
 _RESULT_MAX_CHARS = 2000
@@ -118,13 +118,14 @@ class TrajectoryStore:
         """
         if "task_id" not in trajectory:
             raise ValueError("trajectory requires a 'task_id'")
-        task_id = str(trajectory["task_id"])
+        task_id = validate_path_component(trajectory["task_id"], label="task_id")
         record = dict(trajectory)
         record["recorded_at"] = recorded_at or record.get("recorded_at") or now_iso()
         self._write(task_id, record)
         return task_id
 
     def load(self, task_id: str) -> Dict[str, Any]:
+        task_id = validate_path_component(task_id, label="task_id")
         path = self.dir / f"{task_id}.json"
         if not path.is_file():
             raise FileNotFoundError(f"Trajectory not found: {task_id}")
@@ -168,6 +169,7 @@ class TrajectoryStore:
         return records
 
     def _write(self, task_id: str, record: Dict[str, Any]) -> None:
+        task_id = validate_path_component(task_id, label="task_id")
         path = self.dir / f"{task_id}.json"
         path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
 

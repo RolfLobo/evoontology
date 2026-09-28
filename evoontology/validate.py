@@ -13,7 +13,7 @@ import json
 from typing import Any, Dict, List
 
 from evoontology.ontology.store import VERSION_FILES, SemanticStore
-from evoontology.workspace import PathLike, resolve_workspace
+from evoontology.workspace import PathLike, resolve_workspace, validate_path_component
 
 
 def validate(
@@ -50,6 +50,16 @@ def validate(
                 "version": "",
                 "errors": errors,
             }
+
+    try:
+        selected_version = validate_path_component(selected_version, label="version")
+    except ValueError as exc:
+        return {
+            "passed": False,
+            "root": str(root),
+            "version": selected_version,
+            "errors": [str(exc)],
+        }
 
     version_dir = root / "versions" / selected_version
     if not version_dir.is_dir():

@@ -26,7 +26,11 @@ from ..ontology.models import Constraint, Evidence, Mapping, Relation, Term
 from ..ontology.store import SemanticStore
 from ..runtime.runtime import SemanticLayer
 from ..runtime.tools import TOOLS
-from ..workspace import PathLike, resolve_workspace_for_version
+from ..workspace import (
+    PathLike,
+    resolve_workspace_for_version,
+    validate_path_component,
+)
 from ..workflow import build_experience
 
 ACTIVE = "active"
@@ -161,6 +165,7 @@ def resolve_version(root: PathLike, version: Union[str, None]) -> str:
             return SemanticStore.active_version(root)
         except (FileNotFoundError, ValueError) as exc:
             raise FileNotFoundError("No active ontology version.") from exc
+    requested = validate_path_component(requested, label="version")
     if not (root / "versions" / requested).is_dir():
         raise FileNotFoundError(f"Ontology version '{requested}' not found.")
     return requested
