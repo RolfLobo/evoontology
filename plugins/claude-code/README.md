@@ -57,11 +57,11 @@ mode 在 Build Step 0 确认并写入 `project.json`，Evolve 直接复用。
 
 ### 语义 MCP
 
-`.mcp.json` 以模块形式 spawn 语义服务，client 自动拉起。默认 workspace 为当前项目的
+`.mcp.json` 通过插件内置的跨平台 launcher 启动语义服务，client 自动拉起。默认 workspace 为当前项目的
 `.evoontology/`（零配置）；如需指向别的 workspace，在 `.mcp.json` 的 args 里追加
 `"--store", "<workspace-root>"`。Data Agent 可见 `browse_semantics`、`resolve_semantics`
 两个导航工具与 `evo-semantic://session-manifest` 资源；Build / Evolve / Visualize 通过
-`validate_semantics`、`visualize_ontology`、`evolution_status` 与进化会话工具完成，
+`publish_ontology_build`、`finalize_evolution_run`、`visualize_ontology` 与进化会话工具完成，
 无需在用户项目中运行 `python -m evoontology...`。
 
 ### 进化提醒

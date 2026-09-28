@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -eu
+
+export PYTHONIOENCODING=utf-8
+export PYTHONUTF8=1
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+mode=${1:-}
+if [ "$#" -gt 0 ]; then
+  shift
+fi
+
+case "$mode" in
+  mcp)
+    target="$script_dir/../evoontology/runtime/mcp_server.py"
+    ;;
+  reminder)
+    target="$script_dir/check-reminder.py"
+    ;;
+  *)
+    echo "evoontology: expected launcher mode 'mcp' or 'reminder'" >&2
+    exit 64
+    ;;
+esac
+
+if [ ! -f "$target" ]; then
+  echo "evoontology: bundled Python entry point not found at $target" >&2
+  exit 66
+fi
+
+if [ -n "${EVO_ONTOLOGY_PYTHON:-}" ]; then
+  exec "$EVO_ONTOLOGY_PYTHON" "$target" "$@"
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 "$target" "$@"
+fi
+
+if command -v python >/dev/null 2>&1; then
+  exec python "$target" "$@"
+fi
+
+if command -v py >/dev/null 2>&1; then
+  exec py -3 "$target" "$@"
+fi
+
+echo "evoontology: Python 3.10+ was not found; install it or set EVO_ONTOLOGY_PYTHON" >&2
+exit 127

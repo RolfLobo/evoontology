@@ -5,7 +5,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check-reminder.py\"",
+            "command": "bash",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/launch-evoontology",
+              "reminder"
+            ],
             "async": false
           }
         ]

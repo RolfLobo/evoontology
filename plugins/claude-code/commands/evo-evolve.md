@@ -31,7 +31,9 @@ Incomplete 结束。
 
 - 用 `start_evolution_run` / `resume_evolution_run` 创建或续跑本次 run，冻结预算；
 - 用 `save_version` 把候选保存为 `vN-cK`，并用 `validate_semantics` 校验（不改变 `active.json`）；
-- Accept 后经 `accept_evolution` 发布为 `ontology_vN+1` 并推进 checkpoint；
+- Accept 前用 `annotate_ontology_version` 保存候选摘要、限制与问题关联，再经
+  `accept_evolution` 发布为 `ontology_vN+1` 并推进 checkpoint；
 - Reject 保留 Parent，经 `record_evolution_round` 把轮次摘要追加到 `evolution/run_N/rounds.jsonl`
   后继续下一轮 Candidate（不推进 checkpoint，也不结束 run）；
-- Incomplete 经 `mark_evolution_incomplete` 结束本次 run（不推进 checkpoint）。
+- Incomplete 经 `mark_evolution_incomplete` 结束本次 run（不推进 checkpoint）；
+- Accept 或 Incomplete 后调用 `finalize_evolution_run`，以落盘终态生成结果页。

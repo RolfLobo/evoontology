@@ -29,6 +29,5 @@ Commitment，产出 Term / Mapping / Relation / Constraint / Evidence 五类记�
 `.evoontology/` 绝对路径，不要在本命令中运行 `python -m evoontology...`：
 
 1. `save_version`：把五类记录写入 `versions/ontology_v0/`；
-2. `validate_semantics`：校验尚未激活的 `ontology_v0`（`version` 传 `ontology_v0`）；
-3. `set_active_version`：校验通过后把 `active.json` 指向 `ontology_v0`；
-4. `evolution_status`：幂等初始化进化触发状态，从 `ontology_v0` 发布时刻开始计算首次进化的时间阈值。
+2. `annotate_ontology_version`：保存版本摘要、限制与问题到本体对象的关联；
+3. `publish_ontology_build`：校验并激活 `ontology_v0`、初始化进化状态并渲染结果页。

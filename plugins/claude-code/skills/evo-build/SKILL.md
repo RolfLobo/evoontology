@@ -238,9 +238,9 @@ Complete publication through the `evo-semantic` MCP tools (pass the absolute
 this order:
 
 1. `save_version` — write `ontology_v0`'s five record files;
-2. `validate_semantics` — run deterministic validation before activation;
-3. `set_active_version` — point `active.json` at `ontology_v0`;
-4. `evolution_status` — initialize the evolution trigger state in `state.json`.
+2. `annotate_ontology_version` — save a summary, limitations and question-to-object links;
+3. `publish_ontology_build` — validate, activate, initialize evolution state and
+   render the Results & questions explorer.
 
 Initial build is not an evolution run. Evolution-history fields such as
 `last_evolution_trajectory` and `last_evolution_time` must remain unset until

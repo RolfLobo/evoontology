@@ -279,12 +279,16 @@ and the summaries under `evaluations/`.
 
 If a Candidate was accepted:
 
-1. run `validate_semantics` on the candidate version;
+1. run `validate_semantics` and `annotate_ontology_version` on the candidate version;
 2. `accept_evolution` to publish it as the next `ontology_vN`, switch
    `active.json`, and advance the evolution checkpoint once.
 
 If the run ended Incomplete, do not advance the checkpoint and do not switch
 `active.json`; the same batch is retried on the next run.
+
+Call `finalize_evolution_run` after either terminal outcome. It renders the
+Results & questions explorer from persisted run state. If rendering fails,
+report it separately; the terminal state and active version remain unchanged.
 
 **Stage Output:** Persisted evolution results, updated active version when
 accepted, and consistent evolution state.
