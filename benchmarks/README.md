@@ -21,7 +21,7 @@
 | `rollout.py` | `run_agent.py` + `run_evaluation.py` | 运行 Agent、逐条评分、落盘结果 |
 | `adapter.py`（`EnvAdapter`） | `evolution_adapter.py`（`EvolutionAdapter`） | 把 loader + rollout 接入进化生命周期 |
 | `configs/<name>/default.yaml` | `configs/baseline.yaml` + `configs/ontology.yaml` | 模型、MCP、语义开关、评测参数 |
-| `skills/initial.md` | 插件 `evo-build` skill | 初始本体层构建方法 |
+| `skills/initial.md` | 插件 `build-ontology` skill | 初始本体层构建方法 |
 
 核心契约只有一条：adapter 实现
 `evaluate(subject, cases=None, output_hint=None) -> {"metrics", "cases", "artifact_paths"}`。
@@ -69,5 +69,5 @@ result = adapter.evaluate(subject="ontology_v0")
 ## 数据准备
 
 仓库不提供 benchmark 原始大型数据、预构建 `ontology_v0` 与预构建 evolved ontology。各 benchmark
-的 README 说明官方数据准备方式；准备后运行 `/evo-build` 构建自己的 ontology。BIRD 自带一个
+的 README 说明官方数据准备方式；准备后运行 `build-ontology` 构建自己的 ontology。BIRD 自带一个
 `formula_1` 最小示例（数据库 + 语义 workspace）可用于离线 smoke test。

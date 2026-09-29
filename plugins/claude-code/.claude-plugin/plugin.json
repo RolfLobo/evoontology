@@ -1,7 +1,7 @@
 {
   "name": "evoontology",
-  "version": "1.0.2",
-  "description": "Self-evolving ontology layer for data agents: /evo-build, /evo-evolve, and /evo-visualize commands, builder/evolver skills, a semantic MCP runtime, and a session-start evolution reminder.",
+  "version": "1.1.1",
+  "description": "Build, evolve, and explore a self-evolving ontology layer through three skills, a semantic MCP runtime, and a session-start evolution reminder.",
   "author": {
     "name": "Meiduo Chong"
   },

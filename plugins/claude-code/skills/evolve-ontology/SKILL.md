@@ -1,6 +1,6 @@
 ---
-name: evo-evolve
-description: This skill is triggered when the user requests to "self-evolve the current ontology layer system". Autonomously evolve an ontology-layer system through a four-step loop of diagnosis, attribution, patching, and Parent/Candidate evaluation until a reproducibly better version is obtained, or external conditions prevent trustworthy continuation.
+name: evolve-ontology
+description: Improve an existing ontology using real project tasks and grounded exploration, run missing baselines, validate candidates and automatically show the outcome. This skill is triggered when the user requests to "self-evolve the current ontology layer system". Autonomously evolve an ontology-layer system through a four-step loop of diagnosis, attribution, patching, and Parent/Candidate evaluation until a reproducibly better version is obtained, or external conditions prevent trustworthy continuation.
 ---
 
 # Self-Evolving Ontology Layer
@@ -30,6 +30,7 @@ reversible to the Parent state.
 Read:
 
 - `references/project-context.md`;
+- `references/workload-experience.md`;
 - `references/ontology-layer-data-boundary.md`;
 - previous evolution records and accumulated knowledge, if they exist.
 
@@ -63,9 +64,13 @@ for evolution.
      Validation Reserve according to
      `references/ontology-layer-data-boundary.md`.
 
-3. Fix the Evaluator and acceptance criteria. For a new run, confirm the
-   round budget with the user first (default: 8 rounds); the budget is frozen
-   for the run and a resumed run reuses it without asking again.
+3. Fix the Evaluator and acceptance criteria. Reuse a saved or explicitly
+   requested budget. Offer quick (2 rounds) and full (8 rounds, default) profiles;
+   announce the chosen budget and proceed within the user's authorized scope.
+   Ask before costs beyond that scope or budget extensions. A resumed run reuses
+   its frozen budget. Both profiles use exactly the same acceptance standards.
+   Before starting a new run, resolve access to the native runner and evaluator;
+   if unavailable, explain what is missing without starting a doomed run.
 
 4. Persist the frozen run context through the MCP tool `start_evolution_run`
    (it writes `evolution/run_N/run.json` with the Parent, adapter, frozen
@@ -87,18 +92,24 @@ done and what it should have done but did not.
 
 Before diagnosing, actively locate the trajectories, evaluation results, and
 execution logs relevant to this run and confirm their applicable scope. When
-trajectory sources or their scope are not yet settled, confirm them with the
-user and persist the confirmed source references for this run:
+trajectory sources or their scope are not yet settled, resolve them from the
+request and project context and persist authorized source references for this run:
 
-- Explain each source's path, content scope, time range, and intended use
-  before asking for confirmation.
+- Summarize source, scope and intended use. Ask only when a material ambiguity
+  or new access beyond the request remains; reuse established authorization.
 - For a new run, default to the previous run's confirmed source references
   and verify the paths are still valid; re-confirm only when sources are
   added, invalidated, or their scope changes. A resumed run reuses its
   confirmed sources without asking again.
-- If no eligible trajectories exist yet, run the Parent on a baseline batch
-  first and start diagnosis from its evaluation results, errors, and
-  counterexamples.
+- If no eligible trajectories exist, collect questions using the shared workload
+  workflow: supplied needs, same-data history, then grounded generated questions.
+  Run the Parent on a baseline batch with the observable task tools. Questions
+  alone are not trajectories. Start diagnosis from actual results and errors.
+- Preserve real versus synthetic provenance and keep independent validation
+  isolated. Respect fixed_split; do not replace its official task partitions.
+- For rolling_trajectory, group duplicate/near-duplicate questions before freezing
+  the chronological split so related replays cannot cross design/validation sets.
+  Do not use public construction replay records as an independent validation set.
 
 1. Compare successful, failed, improved, and regressed cases to understand the analysis paths actually taken by the Agent.
 2. Examine analysis coverage and identify important dimensions, metrics, concepts, relations, hypotheses, and analysis directions that were ignored, repeatedly missed, or never explored.
@@ -286,12 +297,13 @@ If a Candidate was accepted:
 If the run ended Incomplete, do not advance the checkpoint and do not switch
 `active.json`; the same batch is retried on the next run.
 
-Call `finalize_evolution_run` after either terminal outcome. It renders the
-Results & questions explorer from persisted run state. If rendering fails,
-report it separately; the terminal state and active version remain unchanged.
+Call `finalize_evolution_run` after either terminal outcome. It renders and opens
+Results & questions automatically, including run status, aggregate evaluation
+metrics and available public before/after replays. If rendering fails, report it
+separately; active version and terminal status stand.
 
-**Stage Output:** Persisted evolution results, updated active version when
-accepted, and consistent evolution state.
+**Stage Output:** Persisted evolution results, an outcome explorer, updated active
+version when accepted, and consistent evolution state.
 
 ## Completion Conditions
 
@@ -345,3 +357,15 @@ Report:
 ## Research Integrity
 
 Preserve the validity of the benchmark and evaluation protocol. Do not modify benchmark questions, labels, Ground Truth, Evaluator logic, data splits, or acceptance criteria to improve results. Domain knowledge should remain in traceable semantic artifacts rather than being hidden in prompts or orchestration code.
+
+## Publication gate record
+
+Before accept_evolution, record_evolution_evaluation for the current Candidate and
+round must include result.gate_input. For ground_truth supply protocol, paired
+parent_scores and candidate_scores, unique case_ids, and
+unacceptable_regressions:false only after checking regressions. For llm_judge
+supply protocol, decoded verdicts (winner: parent/candidate/tie, critical_error:
+boolean) and the same explicit regression conclusion. The core recomputes the gate
+and refuses missing, non-improving or invalid results. Use the frozen independent
+validation protocol; generated numbers or public training replays are not valid
+evaluation evidence. Historical runs are not silently granted a passing gate.

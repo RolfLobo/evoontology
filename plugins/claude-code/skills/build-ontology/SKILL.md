@@ -1,6 +1,6 @@
 ---
-name: evo-build
-description: Build an initial ontology layer by analyzing workload requirements, exploring data-environment evidence, and generating schema-conformant semantic objects.
+name: build-ontology
+description: Build an initial ontology from data and analytical goals, prepare relevant questions from supplied needs and project history, and automatically show the evidence-grounded result.
 ---
 
 # Build Ontology Layer
@@ -24,6 +24,7 @@ Read:
 - references/ontology-interaction-protocol.md
 - references/ontology-layer-data-boundary.md
 - references/project-context.md
+- references/workload-experience.md
 
 The generated ontology layer MUST follow ontology-schema.md.
 
@@ -57,7 +58,10 @@ Otherwise, determine the project mode:
 - **Rolling-Trajectory Mode:** the ontology layer is initialized from a seed
   workload and later evolves from accumulated Task trajectories.
 
-Resolve the target data source, workload source, and Evaluator. When Ground
+Resolve the target data source and analytical goal. Use the workload preparation
+workflow in references/workload-experience.md: supplied questions, relevant
+project history, then evidence-grounded generated questions to fill coverage gaps.
+A user-provided question file is optional. Resolve the workload source and Evaluator. When Ground
 Truth exists, register its location for Evaluator use only; Builder and Evolver
 must not read it.
 
@@ -78,13 +82,13 @@ For **Rolling-Trajectory Mode**:
 
 ### 3. Confirm and persist
 
-Present the resolved mode, data/workload sources, Evaluator, and data boundary
-for confirmation.
-
-After confirmation, persist the project context in the EvoOntology workspace.
+Present a concise summary of the data source, analytical scope and evaluation
+boundary. Reuse explicit authorization already in the request; ask only when a
+material source or business-definition ambiguity remains. Persist context using
+configure_ontology_project. Do not require users to choose internal mode names.
 Later evolution runs must reuse this context rather than infer it again.
 
-**Stage Output:** A confirmed and persisted project context and data boundary.
+**Stage Output:** A resolved and persisted project context and data boundary.
 
 ## Step 1 — Workload-Guided Probing
 
@@ -105,7 +109,9 @@ The coverage map is a construction artifact, not part of the semantic
 layer. Its purpose is to ensure important analytical requirements are not
 lost during ontology layer construction.
 
-Do not start from data structures. Start from analytical requirements.
+Start semantic construction from analytical requirements. In a cold start,
+metadata inspection may first help propose grounded analytical questions; it must
+not turn physical table structure into unsupported business semantics.
 
 ### Design semantic requirements
 
@@ -240,7 +246,12 @@ this order:
 1. `save_version` — write `ontology_v0`'s five record files;
 2. `annotate_ontology_version` — save a summary, limitations and question-to-object links;
 3. `publish_ontology_build` — validate, activate, initialize evolution state and
-   render the Results & questions explorer.
+   automatically render/open the Results & questions explorer.
+
+If the user requests task demonstrations, run representative public questions
+through the task recording tools and refresh visualize_ontology afterward. Do not
+present structural validation as proof of task accuracy. On presentation failure,
+report the successful publication and retry rendering; do not rebuild the ontology.
 
 Initial build is not an evolution run. Evolution-history fields such as
 `last_evolution_trajectory` and `last_evolution_time` must remain unset until

@@ -13,12 +13,12 @@ project — the core is not installed there in a plugin-only setup.
 
 ## Entry points
 
-- **Build** — when the user asks to "build the ontology" or runs `/build-ontology`,
+- **Build** — when the user asks to "build the ontology" or invokes `$build-ontology`,
   execute the `build-ontology` skill (see
   `skills/build-ontology/SKILL.md`). Use the MCP tools `save_version`,
   `annotate_ontology_version` and `publish_ontology_build` to publish
   `ontology_v0` and initialize the trigger checkpoint.
-- **Evolve** — when the user asks to "evolve the ontology" or runs `/evolve-ontology`,
+- **Evolve** — when the user asks to "evolve the ontology" or invokes `$evolve-ontology`,
   execute the `evolve-ontology` skill (see
   `skills/evolve-ontology/SKILL.md`) following
   Diagnose → Attribute → Patch → Evaluate/Gate. Drive the loop with the MCP
@@ -31,16 +31,15 @@ project — the core is not installed there in a plugin-only setup.
   `ontology_vN`, switches `active.json`, and advances the checkpoint; an
   Incomplete run changes neither.
 
-- **Explore** — when the user asks to "explore the ontology", "visualize the ontology" or runs
-  `/explore-ontology` (or `$explore-ontology`), execute the `explore-ontology` skill (see
+- **Explore** — when the user asks to "explore the ontology", "visualize the ontology" or invokes
+  `$explore-ontology`, execute the `explore-ontology` skill (see
   `skills/explore-ontology/SKILL.md`) and call the MCP tool `visualize_ontology`
   to render the active (or an explicitly requested) version as a standalone
   offline multi-version HTML at `<resolved-workspace>/visualizations/ontology-layer-explorer.html`,
   read-only. For this tool, a project root or `.evoontology` container may resolve
   to one nested database workspace; ambiguous candidates require an exact path.
 
-For Codex, the slash-style phrases above are aliases that route to the matching
-skills. The native Codex skill invocations are `$build-ontology`, `$evolve-ontology`, and
+The native Codex skill invocations are `$build-ontology`, `$evolve-ontology`, and
 `$explore-ontology`.
 
 ## Semantic MCP tools
@@ -64,7 +63,7 @@ helpers, and the evolution-session tools). Use those for the workflows above.
 Before a session, check whether evolution is due by calling the MCP tool
 `evolution_status` with `workspace` set to `<project-root>/.evoontology`.
 
-If `check.evolution_due` is true, remind the user that `/evolve-ontology` is
+If `check.evolution_due` is true, remind the user that `$evolve-ontology` is
 available. Never start evolution automatically.
 
 ## Low-friction workload and delivery
@@ -86,10 +85,6 @@ not automatically create complete trajectories; finish the task record explicitl
 Build ends with publish_ontology_build; Evolve ends with finalize_evolution_run.
 Both automatically render/open the outcome explorer once. Rendering failure does
 not invalidate publication. Explore is always available for read-only inspection.
-
-Legacy phrases /evo-build, /evo-evolve and /evo-visualize route respectively to
-build-ontology, evolve-ontology and explore-ontology. The old native skill IDs have
-been renamed; use the new $ names in fresh sessions.
 
 ## Codex desktop presentation
 

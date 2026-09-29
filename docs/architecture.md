@@ -11,7 +11,7 @@ Accept/Reject 门控约束每一次改动。SkillOpt 训练的是 skill 文档�
                     ▼
               EvoOntology 本体层 ontology_vN
                     │
-                    │ /evo-evolve
+                    │ evolve-ontology
                     ▼
         EvolutionSession：冻结预算与数据 → 诊断 → 归因 → 补丁 → 评估门控
                     │
@@ -24,7 +24,7 @@ Accept/Reject 门控约束每一次改动。SkillOpt 训练的是 skill 文档�
 | 目录 | 职责 |
 | --- | --- |
 | `evoontology/` | 确定性核心包：ontology store、runtime/MCP、trajectory、trigger、evaluation、evolution 状态机、validate 门禁 |
-| `plugins/claude-code/` | Claude Code 插件：`/evo-build`、`/evo-evolve`、`/evo-visualize` 命令、builder/evolver skill、`.mcp.json`、Session Start 提醒 hook |
+| `plugins/claude-code/` | Claude Code 插件：`build-ontology`/`evolve-ontology`/`explore-ontology` skills、`.mcp.json`、Session Start 提醒 hook |
 | `plugins/evoontology-codex/` | Codex 插件：`AGENTS.md`、`build-ontology`/`evolve-ontology`/`explore-ontology` skill、`.mcp.json` |
 | `benchmarks/` | 三个 benchmark 环境（bird / ddr_10k / insightbench），每个环境实现一个 `EvolutionAdapter` |
 | `scripts/` | `sync_plugin_core.py`（把根 core 同步到两个插件） |
@@ -35,10 +35,10 @@ Accept/Reject 门控约束每一次改动。SkillOpt 训练的是 skill 文档�
 
 ## 进化闭环
 
-1. **Build**：`/evo-build` 按 workload 探针 → 证据落地，产出并发布 `ontology_v0`。
+1. **Build**：`build-ontology` 按 workload 探针 → 证据落地，产出并发布 `ontology_v0`。
 2. **Use**：Data Agent 通过语义 MCP `browse_semantics` / `resolve_semantics` 做概念 grounding。
 3. **Record**：任务轨迹以 Tool Call 粒度写入 `trajectories/`（不存思维链）。
-4. **Evolve**：达到触发条件后，`/evo-evolve` 在 `EvolutionSession` 内循环诊断 → 归因 → 补丁 → 门控。
+4. **Evolve**：达到触发条件后，`evolve-ontology` 在 `EvolutionSession` 内循环诊断 → 归因 → 补丁 → 门控。
 5. **Evaluate**：`EvaluationGate` 用 GT 绝对评分或 LLM Judge A/B 比较 Parent/Candidate。
 
 状态机规则：
@@ -70,7 +70,7 @@ running ──预算耗尽/外部阻断──▶ incomplete（不发布、不推
 - `run_agent.py` / `run_evaluation.py`：rollout + 评分（对应 SkillOpt 的 `rollout.py`）；
 - `data/`（或场景加载器）：dataloader（对应 SkillOpt 的 `dataloader.py`）；
 - `configs/*.yaml`：baseline / semantic 两条实验条件；
-- seed skill：插件里的 `evo-build`（对应 SkillOpt 的 `skills/initial.md`）。
+- seed skill：插件里的 `build-ontology`（对应 SkillOpt 的 `skills/initial.md`）。
 
 统一发现入口：`benchmarks/registry.py` + `python -m benchmarks`（对应 SkillOpt 的 `_ENV_REGISTRY`）。
 接入细节见 [接入一个新的 Benchmark](guide/new-benchmark.md)。

@@ -16,7 +16,7 @@ Accept/Reject 门控，但改的是语义记录（Term / Mapping / Relation / Co
 | --- | --- |
 | Skill 文档（可训练状态） | 本体层 `ontology_vN`（可训练状态） |
 | Rollout（目标执行任务） | benchmark 的 `run_agent.py` / `run_evaluation.py` |
-| Reflect（优化器产出编辑补丁） | `evo-evolve` skill 的诊断与归因 |
+| Reflect（优化器产出编辑补丁） | `evolve-ontology` skill 的诊断与归因 |
 | Select / Update（learning rate = 最大编辑数） | Candidate 补丁（Content / Tool / Schema） |
 | Validation gate | `evoontology.evaluation.EvaluationGate`（GT / LLM Judge） |
 | `EnvAdapter` | `evoontology.evolution.EvolutionAdapter`（`evaluate()`） |

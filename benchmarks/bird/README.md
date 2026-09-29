@@ -15,7 +15,7 @@ the session text at `bird-semantic://session-manifest`.
 Set the model name and provider fields in the selected YAML file. Credentials
 are read from `BIRD_AGENT_API_KEY`. SQLite files live under
 `data/mini_dev_data/dev_databases/`; semantic workspaces live under
-`.evoontology/<database_id>/` and are created by `/evo-build` rather than shipped prebuilt.
+`.evoontology/<database_id>/` and are created by `build-ontology` rather than shipped prebuilt.
 
 ## Single-question execution
 
@@ -74,7 +74,7 @@ python scripts/run_full.py --dataset minidev --parallel 8 --limit 10
 
 ## Semantic workspace
 
-The repository does not ship a prebuilt ontology. After `/evo-build` creates a
+The repository does not ship a prebuilt ontology. After `build-ontology` creates a
 database workspace, validate its active version with:
 
 ```bash

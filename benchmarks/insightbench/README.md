@@ -61,5 +61,5 @@ evolution input.
 
 ## Semantic workspace
 
-The repository does not ship a prebuilt ontology. Run `/evo-build` over the
+The repository does not ship a prebuilt ontology. Run `build-ontology` over the
 construction workload to initialize `.evoontology/` before enabling semantic execution.

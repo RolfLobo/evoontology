@@ -12,8 +12,7 @@
 | `$explore-ontology` | 随时浏览问题、概念、证据、执行结果和版本差异 |
 
 也可直接说“为这份数据建立语义层，重点支持销售分析”，或“根据最近的使用情况改进一下”。
-旧 `/evo-build`、`/evo-evolve`、`/evo-visualize` 文本触发短语继续路由到新技能；
-原生技能 ID 已改名，请在新会话中使用新名称。
+Claude Code 与 Codex 使用同一组 Build / Evolve / Explore 工作流名称，仅调用语法遵循各自平台约定。
 
 ## 安装
 

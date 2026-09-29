@@ -5,11 +5,10 @@
 
 - `evoontology/` —— 与 benchmark 无关的产品运行时：ontology store / runtime(MCP) /
   trajectory / trigger / evaluation / evolution 生命周期 / validate 门禁。
-- `plugins/` —— Claude Code 插件（`/evo-build`、`/evo-evolve`、`/evo-visualize` 命令 +
-  对应 skills + MCP + Session Start 提醒）与 Codex 插件（`evo-build` / `evo-evolve` /
-  `evo-visualize` skills + `AGENTS.md` + MCP）。两者内置同一份 core 副本。
+- `plugins/` —— Claude Code 与 Codex 插件均提供 `build-ontology`、`evolve-ontology`、
+  `explore-ontology` skills，以及 MCP；Claude Code 另带 Session Start 提醒。两者内置同一份 core 副本。
 
-产品最终形态 = 一个核心包（含 validate 门禁）+ 两个 skill 命令，无 CLI。智能分析全在
+产品最终形态 = 一个核心包（含 validate 门禁）+ 三个 skills，无 CLI。智能分析全在
 skill，Python 只做「运行时 + 最小确定性校验 + 进化生命周期状态机」。默认**零配置**：
 不要求用户填写 workspace 路径、Evaluation Mode、Judge 模型或 Trigger 参数。
 
@@ -39,13 +38,13 @@ codex plugin list
 ```
 
 Marketplace 添加成功不等于插件已安装；请以最后一条 `plugin list` 显示 installed/enabled
-为准。安装或更新后新建会话，再运行 `/evo-build`。
+为准。安装或更新后新建会话，再调用对应客户端的 `build-ontology` skill。
 
 ---
 
 ## 2. 一个 workspace 长什么样
 
-workspace 默认是项目根的 `.evoontology/`，首次 `/evo-build` 时自动创建：
+workspace 默认是项目根的 `.evoontology/`，首次运行 `build-ontology` 时自动创建：
 
 ```
 .evoontology/
@@ -82,14 +81,15 @@ mode 在 Step 0 确认后写入 `project.json`，后续 Build 和 Evolve 共用�
 
 ---
 
-## 3. 触发指令
+## 3. Skill 入口
 
-| 指令 | 语义 | 执行者 |
-| --- | --- | --- |
-| `/evo-build` | 构建 ontology_v0：读数据、探索 schema、生成五类记录 | agent 按 build skill |
-| `/evo-evolve` | 触发进化：诊断→归因→补丁→Parent/Candidate gate→发布 | agent 按 evolve skill |
+| 工作流 | Claude Code | Codex | 语义 |
+| --- | --- | --- | --- |
+| Build | `/evoontology:build-ontology` | `$build-ontology` | 构建并发布 `ontology_v0` |
+| Evolve | `/evoontology:evolve-ontology` | `$evolve-ontology` | 诊断→归因→补丁→Parent/Candidate gate→发布 |
+| Explore | `/evoontology:explore-ontology` | `$explore-ontology` | 只读浏览问题、证据、结果与版本差异 |
 
-两者都是**触发指令**，不是 Python 确定性操作；真正的构建 / 进化由 agent 按 skill 执行。
+三个入口均由 agent 按 skill 执行，不是 Python 确定性操作。
 版本命名与切换约定见 `plugins/claude-code/docs/versioning.md`（正式 `ontology_vN`、
 候选 `vN-cK`，accept 映射 `vN-cK` → `ontology_vN+1`）。
 
@@ -97,7 +97,7 @@ mode 在 Step 0 确认后写入 `project.json`，后续 Build 和 Evolve 共用�
 
 ## 4. 进化闭环：EvolutionSession
 
-每次 `/evo-evolve` 对应一个 Run，由核心包的 `EvolutionSession` 状态机托管。Skill 决定
+每次 `evolve-ontology` 对应一个 Run，由核心包的 `EvolutionSession` 状态机托管。Skill 决定
 「改什么、为什么改」，Session 保证 run 不会以错误方式结束：
 
 ```
@@ -174,7 +174,7 @@ workspace 为当前项目的 `.evoontology/`（零配置）。
 
 ## 7. validate 门禁（agent 自动）
 
-`/evo-build`、`/evo-evolve` 发布新版本前，agent 会自动调用语义 MCP 的
+`build-ontology`、`evolve-ontology` 发布新版本前，agent 会自动调用语义 MCP 的
 `validate_semantics` 工具做确定性门禁（JSON 合法 / 引用完整 / 可加载），用户无需手动执行。
 validate 只做结构校验，不做数据库语义校验（表字段存在 / Mapping 可执行 / Evidence 可复现
 是 Builder 探索阶段已做的事）。
@@ -186,15 +186,16 @@ validate 只做结构校验，不做数据库语义校验（表字段存在 / Ma
 ```bash
 # 1. 按第 1 节通过 Claude Code 或 Codex Marketplace 安装插件
 
-# 2. 触发构建 ontology_v0（在客户端会话里输入）
-/evo-build
+# 2. 触发构建 ontology_v0（Claude Code / Codex）
+/evoontology:build-ontology
+$build-ontology
 
 # 3. Data Agent 通过 MCP 接入（.mcp.json 声明，client 自动 spawn，无需手动起服）
 
-# 4. 触发进化（或等待轨迹达到阈值后的提醒）
-/evo-evolve        # agent 用语义 MCP 的进化工具循环 Candidate；
-                   # Accept 时经 accept_evolution 校验、发布、
-                   # 更新 active.json 并推进 checkpoint
+# 4. 触发进化（Claude Code / Codex，或等待轨迹达到阈值后的提醒）
+/evoontology:evolve-ontology
+$evolve-ontology   # agent 用语义 MCP 的进化工具循环 Candidate；
+                   # Accept 时经 accept_evolution 校验、发布、更新 active.json 并推进 checkpoint
 ```
 
 agent 发布前会自动调用 `validate_semantics` 做门禁。

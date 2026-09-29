@@ -39,7 +39,7 @@ def main() -> int:
             label = root.name if root != base else "workspace"
             reminders.append(
                 f"EvoOntology: evolution is due ({result['reason']}) for {label}. "
-                f"Run /evo-evolve to review and improve the ontology layer."
+                f"Run /evoontology:evolve-ontology to review and improve the ontology layer."
             )
 
     if not reminders:

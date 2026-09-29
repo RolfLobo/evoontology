@@ -651,16 +651,20 @@ def test_tool_view_uses_real_registry(workspace):
 # ---- plugin smoke test ---------------------------------------------------------
 
 def test_plugin_entry_points_call_same_core_api():
-    claude_command = REPO_ROOT / "plugins" / "claude-code" / "commands" / "evo-visualize.md"
+    claude_skill = (REPO_ROOT / "plugins" / "claude-code" /
+                    "skills" / "explore-ontology" / "SKILL.md")
     codex_skill = (REPO_ROOT / "plugins" / "evoontology-codex" /
                    "skills" / "explore-ontology" / "SKILL.md")
-    assert claude_command.is_file() and codex_skill.is_file()
+    assert claude_skill.is_file() and codex_skill.is_file()
 
-    claude_text = claude_command.read_text(encoding="utf-8")
+    claude_text = claude_skill.read_text(encoding="utf-8")
     codex_text = codex_skill.read_text(encoding="utf-8")
-    invocation = "python -m evoontology.visualization"
-    assert invocation in claude_text, "Claude command must call Core visualize()"
-    assert invocation in codex_text, "Codex skill must call Core visualize()"
+    assert "visualize_ontology" in claude_text
+    assert "visualize_ontology" in codex_text
+    forbidden_invocation = "python -m evoontology.visualization"
+    assert "Do not run" in claude_text and forbidden_invocation in claude_text
+    assert "Do not run" in codex_text and forbidden_invocation in codex_text
+    assert "name: explore-ontology" in claude_text
     assert "name: explore-ontology" in codex_text
 
 

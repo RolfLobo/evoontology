@@ -15,24 +15,33 @@ def _read(path: Path) -> str:
 
 def test_build_skill_documents_both_modes():
     for root in SKILL_ROOTS:
-        skill = _read(root / ("build-ontology" if "evoontology-codex" in str(root) else "evo-build") / "SKILL.md")
+        skill = _read(root / "build-ontology" / "SKILL.md")
         boundary = _read(
-            root / ("build-ontology" if "evoontology-codex" in str(root) else "evo-build") / "references" / "ontology-layer-data-boundary.md"
+            root / "build-ontology" / "references" / "ontology-layer-data-boundary.md"
         )
         assert "Fixed-Split Mode" in skill
         assert "Rolling-Trajectory Mode" in skill
         assert "fixed_split" in boundary
         assert "rolling_trajectory" in boundary
-        assert (root / ("build-ontology" if "evoontology-codex" in str(root) else "evo-build") / "references" / "project-context.md").is_file()
+        assert (root / "build-ontology" / "references" / "project-context.md").is_file()
+        assert (root / "build-ontology" / "references" / "workload-experience.md").is_file()
 
 
 def test_evolve_skill_documents_both_modes():
     for root in SKILL_ROOTS:
-        skill = _read(root / ("evolve-ontology" if "evoontology-codex" in str(root) else "evo-evolve") / "SKILL.md")
+        skill = _read(root / "evolve-ontology" / "SKILL.md")
         boundary = _read(
-            root / ("evolve-ontology" if "evoontology-codex" in str(root) else "evo-evolve") / "references" / "ontology-layer-data-boundary.md"
+            root / "evolve-ontology" / "references" / "ontology-layer-data-boundary.md"
         )
         assert "Fixed-Split Mode" in skill
         assert "Rolling-Trajectory Mode" in skill
         assert "fixed_split" in boundary
         assert "rolling_trajectory" in boundary
+
+
+def test_both_plugins_expose_the_same_workflow_names():
+    expected = {"build-ontology", "evolve-ontology", "explore-ontology"}
+    for root in SKILL_ROOTS:
+        assert {path.name for path in root.iterdir() if path.is_dir()} == expected
+        for name in expected:
+            assert f"name: {name}" in _read(root / name / "SKILL.md")

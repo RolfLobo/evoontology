@@ -12,7 +12,7 @@ dataloader / rollout / adapter / config），外加一个可选的初始 seed sk
 | `rollout.py`（rollout + 评分） | `run_agent.py` + `run_evaluation.py` | 在 item 上运行 Agent、逐条评分、落盘结果 |
 | `adapter.py`（`EnvAdapter`） | `evolution_adapter.py`（`EvolutionAdapter`） | 把 loader + rollout 接入进化生命周期 |
 | `configs/<name>/default.yaml` | `configs/*.yaml` | 模型、MCP、语义开关、评测参数 |
-| `skills/initial.md`（seed skill） | `evo-build` skill | 初始本体层的构建方法 |
+| `skills/initial.md`（seed skill） | `build-ontology` skill | 初始本体层的构建方法 |
 
 核心契约只有一条：`evolution_adapter.py` 里的适配器类实现
 `evaluate(subject: str, cases=None, output_hint=None) -> dict`，返回
@@ -109,12 +109,12 @@ python -m benchmarks resolve my_benchmark
 ## Step 6 — 配置
 
 `benchmarks/my_benchmark/configs/baseline.yaml` 与 `configs/ontology.yaml` 保持两条条件一致，只切换
-`semantic.enabled` 与 `mcp_servers` 里是否挂语义 MCP。语义 workspace 用 `/evo-build` 生成，不随仓库
+`semantic.enabled` 与 `mcp_servers` 里是否挂语义 MCP。语义 workspace 用 `build-ontology` 生成，不随仓库
 预置。
 
 ## Step 7 — 运行
 
-先 `/evo-build` 生成 `ontology_v0`，再跑两条条件：
+先运行 `build-ontology` 生成 `ontology_v0`，再跑两条条件：
 
 ```bash
 python benchmarks/my_benchmark/run_evaluation.py --config configs/baseline.yaml

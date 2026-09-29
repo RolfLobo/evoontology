@@ -128,9 +128,9 @@ claude plugin list
 Start a new session, then run:
 
 ```text
-/evo-build
-/evo-evolve
-/evo-visualize
+/evoontology:build-ontology
+/evoontology:evolve-ontology
+/evoontology:explore-ontology
 ```
 
 ### 🤖 Codex
@@ -148,6 +148,9 @@ $build-ontology
 $evolve-ontology
 $explore-ontology
 ```
+
+Both plugins use the same Build / Evolve / Explore workflow names; only the
+platform-native invocation syntax differs.
 
 Codex prepares questions from user needs, relevant project history and grounded exploration; question/trajectory files are optional. Build and Evolve automatically open the outcome explorer. SQLite has built-in read-only task replay; other data sources use host tools with explicit observation recording. See [Codex plugin](plugins/evoontology-codex/README.md).
 

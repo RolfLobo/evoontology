@@ -9,7 +9,7 @@
     {
       "name": "evoontology",
       "source": "./plugins/claude-code",
-      "description": "Self-evolving ontology layer for data agents: /evo-build, /evo-evolve, and /evo-visualize commands, builder/evolver skills, a semantic MCP runtime, and a session-start evolution reminder.",
+      "description": "Build, evolve, and explore a self-evolving ontology layer through three skills, a semantic MCP runtime, and a session-start evolution reminder.",
       "category": "data",
       "tags": ["ontology", "ontology-layer", "self-evolution", "data-agent", "text-to-sql", "mcp"]
     }

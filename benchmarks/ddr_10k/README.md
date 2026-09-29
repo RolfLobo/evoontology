@@ -63,5 +63,5 @@ outputs from the selected configuration. `--test-mode`, `--parallel`, and
 
 ## Semantic workspace
 
-The repository does not ship a prebuilt ontology. Run `/evo-build` against the
+The repository does not ship a prebuilt ontology. Run `build-ontology` against the
 prepared DDR data to initialize `.evoontology/`, then use the semantic configuration.

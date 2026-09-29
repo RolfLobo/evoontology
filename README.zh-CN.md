@@ -127,9 +127,9 @@ claude plugin list
 新建会话后运行：
 
 ```text
-/evo-build
-/evo-evolve
-/evo-visualize
+/evoontology:build-ontology
+/evoontology:evolve-ontology
+/evoontology:explore-ontology
 ```
 
 ### 🤖 Codex
@@ -147,6 +147,8 @@ $build-ontology
 $evolve-ontology
 $explore-ontology
 ```
+
+两个插件使用相同的 Build / Evolve / Explore 工作流名称，仅调用语法遵循各自平台约定。
 
 Codex 自动按用户需求、相关项目历史和有依据的探索补足问题，不要求预先准备问题或轨迹文件。构建和进化结束后自动展示结果。SQLite 支持内置只读回放，其他数据源通过宿主工具执行并记录实际观察。详见 [Codex 插件](plugins/evoontology-codex/README.md)。
 
