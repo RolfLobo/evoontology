@@ -1,51 +1,46 @@
-# 接入一个新的 Benchmark
+<p align="center">
+  English | <a href="new-benchmark.zh-CN.md">简体中文</a>
+</p>
 
-一个 benchmark 环境 = `benchmarks/<name>/` 包，提供四个东西（对应 SkillOpt `envs/<name>/` 的
-dataloader / rollout / adapter / config），外加一个可选的初始 seed skill。已有实现里
-`benchmarks/bird/` 是最小的完整参考（对应 SkillOpt 的 `envs/officeqa/` 或 `envs/searchqa/`）。
+# Integrating a New Benchmark
 
-## 需要提供的四件事
+A benchmark environment is a `benchmarks/<name>/` package that provides four components—dataloader, rollout, adapter, and configuration, corresponding to SkillOpt's `envs/<name>/` contract—plus an optional initial seed skill. `benchmarks/bird/` is the smallest complete reference, comparable to SkillOpt's `envs/officeqa/` or `envs/searchqa/`.
 
-| SkillOpt 组件 | EvoOntology 组件 | 职责 |
+## Required components
+
+| SkillOpt component | EvoOntology component | Responsibility |
 | --- | --- | --- |
-| `dataloader.py`（`SplitDataLoader`） | `data/` 或场景加载器 | 从磁盘加载 train/val/test item |
-| `rollout.py`（rollout + 评分） | `run_agent.py` + `run_evaluation.py` | 在 item 上运行 Agent、逐条评分、落盘结果 |
-| `adapter.py`（`EnvAdapter`） | `evolution_adapter.py`（`EvolutionAdapter`） | 把 loader + rollout 接入进化生命周期 |
-| `configs/<name>/default.yaml` | `configs/*.yaml` | 模型、MCP、语义开关、评测参数 |
-| `skills/initial.md`（seed skill） | `build-ontology` skill | 初始本体层的构建方法 |
+| `dataloader.py` (`SplitDataLoader`) | `data/` or a scenario loader | Load train/validation/test items with IDs from disk |
+| `rollout.py` (rollout + scoring) | `run_agent.py` + `run_evaluation.py` | Run the Agent, score each item, and persist results |
+| `adapter.py` (`EnvAdapter`) | `evolution_adapter.py` (`EvolutionAdapter`) | Connect the loader and rollout to the evolution lifecycle |
+| `configs/<name>/default.yaml` | `configs/*.yaml` | Model, MCP, semantic switch, and evaluation parameters |
+| `skills/initial.md` (seed skill) | `build-ontology` skill | Initial ontology-layer construction method |
 
-核心契约只有一条：`evolution_adapter.py` 里的适配器类实现
-`evaluate(subject: str, cases=None, output_hint=None) -> dict`，返回
-`{"metrics": {...}, "cases": [...], "artifact_paths": [...]}`。`metrics` 是门控决策的最小要求；
-`cases` 和 `artifact_paths` 用于诊断与审计。
+The only core contract is an adapter class in `evolution_adapter.py` implementing `evaluate(subject: str, cases=None, output_hint=None) -> dict` and returning `{"metrics": {...}, "cases": [...], "artifact_paths": [...]}`. `metrics` is the minimum input for a gate decision; `cases` and `artifact_paths` support diagnosis and audit.
 
-## Step 1 — 创建包
+## Step 1 — Create the package
 
 ```bash
 mkdir -p benchmarks/my_benchmark
 touch benchmarks/my_benchmark/__init__.py
 ```
 
-## Step 2 — 数据加载
+## Step 2 — Load data
 
-用一个 `data/` 目录（或场景加载器）负责从磁盘加载带 `id` 的 item。BIRD 的例子是
-`benchmarks/bird/data/` + `config.py` 的 `DATASET_PATHS`：每个 item 至少有 `question_id` / `question` /
-`db_id` / `gold_sql`，供 rollout 与评分使用。
+Use a `data/` directory or scenario loader to load items with IDs from disk. BIRD uses `benchmarks/bird/data/` and `DATASET_PATHS` in `config.py`. Each item includes at least `question_id`, `question`, `db_id`, and `gold_sql` for rollout and scoring.
 
-## Step 3 — rollout + 评分
+## Step 3 — Implement rollout and scoring
 
-`run_agent.py` 负责「用某个语义版本在 item 上跑出结果」，`run_evaluation.py` 负责「执行结果 + 对照
-Ground Truth 评分」。评分逻辑放在这里，而不是放在 adapter 里——adapter 只做编排与结果规约（对应 SkillOpt
-「Scoring lives here, not in `EnvAdapter`」）。
+`run_agent.py` runs an item against a chosen semantic version. `run_evaluation.py` executes results and scores them against ground truth. Keep scoring here, not in the adapter: the adapter only orchestrates execution and normalizes results, following SkillOpt's rule that scoring lives outside `EnvAdapter`.
 
-两条实验条件共用一个 Agent / 工具 / Runner，只有配置不同：
+Both experimental conditions share one Agent, tool set, and runner, differing only in configuration:
 
-- `configs/baseline.yaml`：只有原生工具；
-- `configs/ontology.yaml`：额外挂语义 MCP，暴露 `browse_semantics` / `resolve_semantics`。
+- `configs/baseline.yaml`: native tools only;
+- `configs/ontology.yaml`: additionally connects semantic MCP and exposes `browse_semantics` and `resolve_semantics`.
 
-## Step 4 — 实现 adapter
+## Step 4 — Implement the adapter
 
-`benchmarks/my_benchmark/evolution_adapter.py`：
+Create `benchmarks/my_benchmark/evolution_adapter.py`:
 
 ```python
 import json
@@ -79,12 +74,11 @@ class MyBenchmarkAdapter:
         }
 ```
 
-adapter 必须 stdlib-only，这样进化核心可以导入它而不用安装 benchmark 的重依赖（OpenAI SDK、
-`requests`、`torch` 等）。重型依赖只在 `run_agent.py` / `run_evaluation.py` 子进程里使用。
+The adapter must use only the standard library so the evolution core can import it without installing benchmark-heavy dependencies such as the OpenAI SDK, `requests`, or `torch`. Use those dependencies only in the `run_agent.py` or `run_evaluation.py` subprocess.
 
-## Step 5 — 注册
+## Step 5 — Register the benchmark
 
-在 `benchmarks/registry.py` 的 `_BUILTINS` 里加一行，保持懒加载：
+Add one lazy-loading entry to `_BUILTINS` in `benchmarks/registry.py`:
 
 ```python
 _BUILTINS = {
@@ -97,29 +91,26 @@ _BUILTINS = {
 }
 ```
 
-验证：
+Verify it:
 
 ```bash
 python -m benchmarks list
 python -m benchmarks resolve my_benchmark
 ```
 
-若得到 `Unknown benchmark environment 'my_benchmark'`，说明忘了注册。
+`Unknown benchmark environment 'my_benchmark'` means the environment was not registered.
 
-## Step 6 — 配置
+## Step 6 — Configure both conditions
 
-`benchmarks/my_benchmark/configs/baseline.yaml` 与 `configs/ontology.yaml` 保持两条条件一致，只切换
-`semantic.enabled` 与 `mcp_servers` 里是否挂语义 MCP。语义 workspace 用 `build-ontology` 生成，不随仓库
-预置。
+Keep `benchmarks/my_benchmark/configs/baseline.yaml` and `configs/ontology.yaml` identical except for `semantic.enabled` and whether `mcp_servers` includes semantic MCP. Generate the semantic workspace with `build-ontology`; do not ship a prebuilt workspace.
 
-## Step 7 — 运行
+## Step 7 — Run
 
-先运行 `build-ontology` 生成 `ontology_v0`，再跑两条条件：
+First run `build-ontology` to generate `ontology_v0`, then execute both conditions:
 
 ```bash
 python benchmarks/my_benchmark/run_evaluation.py --config configs/baseline.yaml
 python benchmarks/my_benchmark/run_evaluation.py --config configs/ontology.yaml
 ```
 
-进化时由 skill 通过 `benchmarks.registry.get("my_benchmark")(...)` 构造 adapter，分别对 Parent 与
-Candidate 调用 `evaluate()`，再交给 `EvaluationGate` 做 Accept/Reject 决策。
+During evolution, the skill constructs the adapter through `benchmarks.registry.get("my_benchmark")(…)`, calls `evaluate()` for the Parent and Candidate, and passes both results to `EvaluationGate` for the Accept/Reject decision.

@@ -1,3 +1,7 @@
+<p align="center">
+  English | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 # InsightBench Integration
 
 This directory contains the InsightBench analysis and evaluation workflow.

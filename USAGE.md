@@ -1,23 +1,21 @@
-# EvoOntology 产品化使用指南
+<p align="center">
+  English | <a href="USAGE.zh-CN.md">简体中文</a>
+</p>
 
-本文档说明如何实际使用 EvoOntology。产品化把散落在三个 benchmark 里的通用能力抽取为
-一个**核心包** `evoontology/`（确定性能力），并配两个自包含插件：
+# EvoOntology Product Guide
 
-- `evoontology/` —— 与 benchmark 无关的产品运行时：ontology store / runtime(MCP) /
-  trajectory / trigger / evaluation / evolution 生命周期 / validate 门禁。
-- `plugins/` —— Claude Code 与 Codex 插件均提供 `build-ontology`、`evolve-ontology`、
-  `explore-ontology` skills，以及 MCP；Claude Code 另带 Session Start 提醒。两者内置同一份 core 副本。
+This guide explains how to use EvoOntology in practice. The product extracts the capabilities shared by the three benchmarks into one deterministic core package and two self-contained plugins:
 
-产品最终形态 = 一个核心包（含 validate 门禁）+ 三个 skills，无 CLI。智能分析全在
-skill，Python 只做「运行时 + 最小确定性校验 + 进化生命周期状态机」。默认**零配置**：
-不要求用户填写 workspace 路径、Evaluation Mode、Judge 模型或 Trigger 参数。
+- `evoontology/` — benchmark-independent runtime for the ontology store, MCP runtime, trajectories, triggers, evaluation, evolution lifecycle, and validation gate.
+- `plugins/` — Claude Code and Codex plugins that both provide `build-ontology`, `evolve-ontology`, and `explore-ontology` skills plus MCP; Claude Code also includes a Session Start reminder. Both bundle the same core.
+
+The product consists of one core package, including the validation gate, and three skills. It has no CLI. Intelligent analysis stays in the skills; Python implements only the runtime, minimal deterministic validation, and the evolution lifecycle state machine. The default is zero configuration: users do not need to provide a workspace path, evaluation mode, judge model, or trigger parameters.
 
 ---
 
-## 1. 安装
+## 1. Installation
 
-请选择正在使用的客户端，通过 Marketplace 安装；无需 clone 仓库、创建虚拟环境或单独运行
-`pip install`。
+Choose your client and install through its Marketplace. You do not need to clone the repository, create a virtual environment, or run `pip install` separately.
 
 ### Claude Code
 
@@ -37,173 +35,140 @@ codex plugin add evoontology-codex@evoontology
 codex plugin list
 ```
 
-Marketplace 添加成功不等于插件已安装；请以最后一条 `plugin list` 显示 installed/enabled
-为准。安装或更新后新建会话，再调用对应客户端的 `build-ontology` skill。
+Adding the Marketplace does not install the plugin. Confirm that the final `plugin list` reports it as installed and enabled. After installing or updating, start a new session and invoke the client's `build-ontology` skill.
 
 ---
 
-## 2. 一个 workspace 长什么样
+## 2. Workspace layout
 
-workspace 默认是项目根的 `.evoontology/`，首次运行 `build-ontology` 时自动创建：
+By default, the workspace is `.evoontology/` at the project root. It is created automatically the first time `build-ontology` runs:
 
-```
+```text
 .evoontology/
 ├── project.json         # mode / data source / workload / evaluator / boundary
 ├── active.json          # {"active_version": "ontology_v0"}
-├── versions/            # 所有版本（正式 ontology_vN + 候选 vN-cK），每版本 5 个 JSON
-├── trajectories/        # 每个任务一条 JSON trajectory
-├── evolution/           # 每个进化 run 一个目录 run_N/
+├── versions/            # all versions: published ontology_vN and candidate vN-cK; five JSON files per version
+├── trajectories/        # one JSON trajectory per task
+├── evolution/           # one run_N/ directory per evolution run
 │   └── run_N/
-│       ├── run.json                 # 状态 / Parent / 当前 Candidate / 轮次 / 冻结预算
-│       ├── trajectory-sources.json  # 用户确认的轨迹来源记录
-│       ├── rounds.jsonl             # 每轮一行摘要
-│       └── evaluations/             # 正式 Parent/Candidate 评估摘要
-└── state.json           # Trigger checkpoint 与阈值
+│       ├── run.json                 # status / Parent / current Candidate / round / frozen budget
+│       ├── trajectory-sources.json  # user-confirmed trajectory source records
+│       ├── rounds.jsonl             # one summary per round
+│       └── evaluations/             # formal Parent/Candidate evaluation summaries
+└── state.json           # trigger checkpoint and thresholds
 ```
 
-每版本下是 5 个记录文件，对应五类对象：Term / Mapping / Relation / Constraint /
-Evidence。轨迹由 Data Agent 运行时（benchmark adapter 侧）在每次任务结束时追加到
-`trajectories/`。
+Each version contains five record files for Term, Mapping, Relation, Constraint, and Evidence objects. The Data Agent runtime on the benchmark-adapter side appends a trajectory to `trajectories/` after each task.
 
-Workspace 分阶段初始化：Step 0 确认后写 `project.json`；初始版本保存并通过
-语义 MCP 的 `validate_semantics`（`version` 传 `ontology_v0`）后，才写 `active.json` 和
-`state.json`。Core 默认解析 `<project-root>/.evoontology/`，benchmark 可显式传入其他路径。
+Workspace initialization is staged. After Step 0 is confirmed, EvoOntology writes `project.json`. Only after the initial version is saved and passes the semantic MCP's `validate_semantics` check with `version` set to `ontology_v0` does it write `active.json` and `state.json`. The core resolves `<project-root>/.evoontology/` by default; a benchmark may pass another path explicitly.
 
-### 选择 mode
+### Choosing a mode
 
-- `fixed_split`：用于已有固定问题集、GT 和评测边界的 benchmark。Construction Pool 用于
-  Build/诊断，Validation Reserve 只用于最终 Gate。优先复用官方划分，不额外生成随机 Fold。
-- `rolling_trajectory`：用于真实业务或冷启动。先用 seed workload 初始化，之后按 checkpoint
-  持续收集新的 task trajectory；没有 GT 时通过独立任务抽样和 LLM Judge 比较 Parent/Candidate，
-  不需要强行划分 Fold A/B。
+- `fixed_split`: for benchmarks with a fixed question set, ground truth, and evaluation boundary. The Construction Pool is used for Build and diagnosis; the Validation Reserve is used only for the final gate. Reuse the official split instead of creating random folds.
+- `rolling_trajectory`: for production use or cold starts. Initialize from a seed workload, then collect new task trajectories after each checkpoint. Without ground truth, compare Parent and Candidate using independently sampled tasks and an LLM Judge; do not force a Fold A/B split.
 
-mode 在 Step 0 确认后写入 `project.json`，后续 Build 和 Evolve 共用，避免每轮重新判断。
+The mode is written to `project.json` after Step 0 confirmation and reused by Build and Evolve.
 
 ---
 
-## 3. Skill 入口
+## 3. Skill entry points
 
-| 工作流 | Claude Code | Codex | 语义 |
+| Workflow | Claude Code | Codex | Purpose |
 | --- | --- | --- | --- |
-| Build | `/evoontology:build-ontology` | `$build-ontology` | 构建并发布 `ontology_v0` |
-| Evolve | `/evoontology:evolve-ontology` | `$evolve-ontology` | 诊断→归因→补丁→Parent/Candidate gate→发布 |
-| Explore | `/evoontology:explore-ontology` | `$explore-ontology` | 只读浏览问题、证据、结果与版本差异 |
+| Build | `/evoontology:build-ontology` | `$build-ontology` | Build and publish `ontology_v0` |
+| Evolve | `/evoontology:evolve-ontology` | `$evolve-ontology` | Diagnose → attribute → patch → Parent/Candidate gate → publish |
+| Explore | `/evoontology:explore-ontology` | `$explore-ontology` | Read-only exploration of questions, evidence, results, and version differences |
 
-三个入口均由 agent 按 skill 执行，不是 Python 确定性操作。
-版本命名与切换约定见 `plugins/claude-code/docs/versioning.md`（正式 `ontology_vN`、
-候选 `vN-cK`，accept 映射 `vN-cK` → `ontology_vN+1`）。
+The agent follows the relevant skill for all three entry points; they are not deterministic Python operations. See [versioning](plugins/claude-code/docs/versioning.md) for the naming and switching rules: published versions use `ontology_vN`, candidates use `vN-cK`, and acceptance maps `vN-cK` to `ontology_vN+1`.
 
 ---
 
-## 4. 进化闭环：EvolutionSession
+## 4. Evolution loop: EvolutionSession
 
-每次 `evolve-ontology` 对应一个 Run，由核心包的 `EvolutionSession` 状态机托管。Skill 决定
-「改什么、为什么改」，Session 保证 run 不会以错误方式结束：
+Each `evolve-ontology` invocation corresponds to one run managed by the core `EvolutionSession` state machine. The skill decides what to change and why; the session ensures that a run cannot end incorrectly:
 
-```
-running ──Reject──▶ running（同一 run 内设计下一个 Candidate）
-running ──Accept──▶ accepted（发布新版本、推进 checkpoint）
-running ──预算耗尽/用户中断/数据缺失/评估不可靠──▶ incomplete
+```text
+running ──Reject──▶ running (design the next Candidate in the same run)
+running ──Accept──▶ accepted (publish a new version and advance the checkpoint)
+running ──budget exhausted / user interruption / missing data / unreliable evaluation──▶ incomplete
 ```
 
-### 新 run 开始时
+### At the start of a new run
 
-1. **恢复优先**：若已有未结束的 run，resume 它而不是新开；
-2. **冻结数据**：fixed_split 复用已持久化的训练/验证子集；rolling_trajectory 从
-   checkpoint 之后收集合格轨迹、冻结批次并切分 Evolution Pool / Validation Reserve；
-3. **确认预算**：向用户说明本次计划使用的轮数（默认 8），确认后冻结进 `run.json`；
-   resume 同一 run 沿用已确认预算；预算耗尽后如需加轮数，必须再次确认；
-4. **确认轨迹来源**：来源或范围未定时，向用户说明每条来源的路径、内容范围、时间与
-   用途并确认，确认后写入 `run_N/trajectory-sources.json`。新 run 默认复用最近一次 run
-   的来源记录并验证路径仍有效，仅当来源新增、失效或范围变化时重新确认。找不到轨迹时，
-   先跑 Parent baseline，再据评测结果、错误和反例开始诊断。
+1. **Resume first**: resume an unfinished run instead of starting another one.
+2. **Freeze data**: `fixed_split` reuses persisted training and validation subsets; `rolling_trajectory` collects eligible trajectories after the checkpoint, freezes the batch, and splits it into an Evolution Pool and Validation Reserve.
+3. **Confirm the budget**: explain the planned number of rounds, eight by default, and freeze it in `run.json` after confirmation. A resumed run retains its confirmed budget. Extending an exhausted budget requires confirmation again.
+4. **Confirm trajectory sources**: if a source or scope is unresolved, explain each source's path, content scope, time range, and purpose, then write the confirmed selection to `run_N/trajectory-sources.json`. A new run reuses the latest source record by default and verifies that paths remain valid; reconfirm only when sources are added, become invalid, or change scope. If no trajectory is available, run the Parent baseline first and diagnose from its evaluation results, errors, and counterexamples.
 
-### 循环内
+### During the loop
 
-- 诊断 → 归因 → 补丁：沿 **Content / Tool / Schema** 三个维度选择主要机制，一个
-  Candidate 验证一个主要假设；改动必须可溯源到目标维度、可回滚到 Parent；
-- 评估：Candidate 以自己的存储版本参评（`--semantic-version`），比较期间不修改
-  `active.json`；有 GT 走绝对评分，无 GT 走 LLM Judge 匿名 A/B；
-- **Reject 不是终点**：写 `rounds.jsonl` 摘要、更新归因与 problem map，然后设计下一个
-  Candidate；不推进 checkpoint、不结束 run；
-- **Accept 结束搜索**：进入收尾。
+- Diagnose → attribute → patch: choose one primary mechanism across **Content / Tool / Schema**. Each Candidate tests one primary hypothesis; every change must trace to the target dimension and be reversible to the Parent.
+- Evaluate: evaluate the Candidate from its own stored version with `--semantic-version` and do not modify `active.json` during comparison. Use absolute scoring with ground truth, or anonymous LLM Judge A/B comparison without it.
+- **Reject is not terminal**: append a summary to `rounds.jsonl`, update attribution and the problem map, then design the next Candidate. Do not advance the checkpoint or end the run.
+- **Accept ends the search** and begins finalization.
 
-### 收尾（Finalize）
+### Finalization
 
-Accept 后：确定性校验 → 发布为 `ontology_vN+1`（不覆盖已有正式版本）→ 更新
-`active.json` → 推进一次 checkpoint → run 标记 `accepted`。
-Incomplete 不发布、不推进；同一批次在下次 run 重试。`missing_data` /
-`unreliable_evaluation` / `external_block` 这类判断性停止，需先在同一 run 内正式 Reject
-至少 `min_rejects_before_incomplete`（默认 2）个候选；`user_interrupted` 与
-`missing_permissions` 才立即停止。最终报告必须基于 session 终态与落盘记录，不依赖对话记忆。
+After Accept: deterministic validation → publish as `ontology_vN+1` without overwriting any published version → update `active.json` → advance the checkpoint once → mark the run `accepted`.
+
+Incomplete runs neither publish nor advance the checkpoint; the same batch is retried in the next run. Judgment-based stop reasons such as `missing_data`, `unreliable_evaluation`, and `external_block` require at least `min_rejects_before_incomplete` formal candidate rejections in the same run, two by default. Only `user_interrupted` and `missing_permissions` may stop immediately. The final report must be based on the session terminal state and persisted records, not conversation memory.
 
 ---
 
-## 5. 配置（零配置）
+## 5. Configuration: zero configuration by default
 
-产品默认零配置，无 `config.yaml`。用户需要调整时直接告诉 Claude / Codex（例如「以后每
-60 个任务提醒我一次」），由 agent 更新 `state.json` 内部状态，不改配置文件。
+There is no default `config.yaml`. To change behavior, tell Claude or Codex directly—for example, “Remind me after every 60 tasks.” The agent updates internal state in `state.json` rather than a configuration file.
 
-- 进化触发默认：checkpoint 后新增 ≥ 30 个 task，或距 checkpoint ≥ 7 天。首次 checkpoint
-  是 `ontology_v0` 发布时间；**只有正式 Gate 的 Accept 推进 checkpoint**（Reject 在同一
-  run 内继续循环，Incomplete 不推进）。
-- 评估协议自动选择：benchmark 提供 Evaluator（Ground Truth）时走 GT；否则走 LLM Judge
-  （见 `plugins/claude-code/docs/evaluation-protocol.md`）。
+- Evolution triggers by default after at least 30 new tasks since the checkpoint or at least seven days. The first checkpoint is the publication time of `ontology_v0`. **Only a formal gate Accept advances the checkpoint**; Reject continues within the same run, and Incomplete does not advance it.
+- The evaluation protocol is selected automatically: use ground truth when the benchmark provides an evaluator, otherwise use an LLM Judge. See [evaluation protocol](plugins/claude-code/docs/evaluation-protocol.md).
 
 ---
 
-## 6. MCP 接入
+## 6. MCP integration
 
-插件通过 `.mcp.json` 以模块形式 spawn 服务，client 自动拉起、无需手动起服。默认
-workspace 为当前项目的 `.evoontology/`（零配置）。
+The plugin uses `.mcp.json` to spawn the service as a module. The client starts it automatically, so no manual server process is required. The default workspace is `.evoontology/` in the current project.
 
-接入后 Data Agent 可见：
+The Data Agent receives:
 
-- 工具 `browse_semantics(query, kind, limit)` —— 发现相关概念；
-- 工具 `resolve_semantics(mentions, context)` —— 解析概念到 grounding 的 mapping +
-  关联的 relation / constraint / evidence；
-- 资源 `evo-semantic://session-manifest` —— 会话开始时读取的简洁说明。
+- `browse_semantics(query, kind, limit)` — discover relevant concepts;
+- `resolve_semantics(mentions, context)` — resolve concepts to grounded mappings and related relations, constraints, and evidence;
+- `evo-semantic://session-manifest` — a concise resource read at session start.
 
-同一个 `evo-semantic` 服务还向 Build / Evolve / Visualize 暴露确定性操作
-（`validate_semantics`、`visualize_ontology`、`evolution_status`、版本辅助与进化会话
-工具），因此插件-only 安装无需在用户项目里运行 `python -m evoontology...`。
+The same `evo-semantic` service exposes deterministic operations to Build, Evolve, and Visualize, including `validate_semantics`, `visualize_ontology`, `evolution_status`, version helpers, and evolution-session tools. Plugin-only installation therefore does not require `python -m evoontology...` in the user's project.
 
-这两个工具返回的是元数据与指引，数据库查询与 Python 执行仍由 benchmark 原生工具负责。
+The two navigation tools return metadata and guidance. Database queries and Python execution remain the responsibility of the benchmark's native tools.
 
 ---
 
-## 7. validate 门禁（agent 自动）
+## 7. Validation gate
 
-`build-ontology`、`evolve-ontology` 发布新版本前，agent 会自动调用语义 MCP 的
-`validate_semantics` 工具做确定性门禁（JSON 合法 / 引用完整 / 可加载），用户无需手动执行。
-validate 只做结构校验，不做数据库语义校验（表字段存在 / Mapping 可执行 / Evidence 可复现
-是 Builder 探索阶段已做的事）。
+Before `build-ontology` or `evolve-ontology` publishes a version, the agent automatically invokes the semantic MCP's `validate_semantics` tool. It checks valid JSON, complete references, and loadability; users do not run it manually.
+
+Validation is structural only. Database-semantic checks—whether tables and columns exist, mappings execute, and evidence can be reproduced—belong to the Builder's exploration phase.
 
 ---
 
-## 8. 一个最小端到端流程
+## 8. Minimal end-to-end flow
 
 ```bash
-# 1. 按第 1 节通过 Claude Code 或 Codex Marketplace 安装插件
+# 1. Install the plugin through the Claude Code or Codex Marketplace as described in Section 1
 
-# 2. 触发构建 ontology_v0（Claude Code / Codex）
+# 2. Build ontology_v0 (Claude Code / Codex)
 /evoontology:build-ontology
 $build-ontology
 
-# 3. Data Agent 通过 MCP 接入（.mcp.json 声明，client 自动 spawn，无需手动起服）
+# 3. Connect the Data Agent through MCP (.mcp.json; the client spawns it automatically)
 
-# 4. 触发进化（Claude Code / Codex，或等待轨迹达到阈值后的提醒）
+# 4. Trigger evolution (Claude Code / Codex), or wait for the trajectory-threshold reminder
 /evoontology:evolve-ontology
-$evolve-ontology   # agent 用语义 MCP 的进化工具循环 Candidate；
-                   # Accept 时经 accept_evolution 校验、发布、更新 active.json 并推进 checkpoint
+$evolve-ontology   # the agent loops over Candidates using semantic MCP evolution tools;
+                   # Accept validates, publishes, updates active.json, and advances the checkpoint
 ```
 
-agent 发布前会自动调用 `validate_semantics` 做门禁。
+The agent automatically calls `validate_semantics` before publication.
 
 ---
 
-## 9. 边界（一期不做）
+## 9. Out of scope for the first release
 
-Web UI / SaaS / 多租户 / 消息队列 / 常驻 worker / 多 Candidate 并行 / 自动循环 / 高频改
-schema 均不在本版范围。无人值守全自动进化需要常驻后台 worker，一期只做「检测 + 提醒」，
-由人触发。
+Web UI, SaaS, multitenancy, message queues, resident workers, parallel Candidates, automatic loops, and frequent schema changes are outside this release. Fully unattended evolution requires a resident background worker; the first release provides detection and reminders, with execution initiated by a person.

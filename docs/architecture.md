@@ -1,76 +1,77 @@
-# 架构总览
+<p align="center">
+  English | <a href="architecture.zh-CN.md">简体中文</a>
+</p>
 
-## 核心思想
+# Architecture Overview
 
-EvoOntology 借鉴了 SkillOpt 的方法论：把「本体层」当成 Agent 的可训练状态，用轮次预算、验证集和
-Accept/Reject 门控约束每一次改动。SkillOpt 训练的是 skill 文档，EvoOntology 演化的是本体层记录。
+## Core idea
 
-```
-自然语言问题 ──▶ Data Agent（Claude Code / Codex / benchmark harness）
-                    │ MCP: browse_semantics / resolve_semantics
-                    ▼
-              EvoOntology 本体层 ontology_vN
-                    │
-                    │ evolve-ontology
-                    ▼
-        EvolutionSession：冻结预算与数据 → 诊断 → 归因 → 补丁 → 评估门控
-                    │
-                    ▼
-        trajectories/ + evaluations/ → Accept 发布 ontology_vN+1 / Reject 下一轮 / Incomplete 保持 Parent
-```
-
-## 模块划分
-
-| 目录 | 职责 |
-| --- | --- |
-| `evoontology/` | 确定性核心包：ontology store、runtime/MCP、trajectory、trigger、evaluation、evolution 状态机、validate 门禁 |
-| `plugins/claude-code/` | Claude Code 插件：`build-ontology`/`evolve-ontology`/`explore-ontology` skills、`.mcp.json`、Session Start 提醒 hook |
-| `plugins/evoontology-codex/` | Codex 插件：`AGENTS.md`、`build-ontology`/`evolve-ontology`/`explore-ontology` skill、`.mcp.json` |
-| `benchmarks/` | 三个 benchmark 环境（bird / ddr_10k / insightbench），每个环境实现一个 `EvolutionAdapter` |
-| `scripts/` | `sync_plugin_core.py`（把根 core 同步到两个插件） |
-| `docs/` | 架构与接入文档 |
-
-核心包只提供确定性能力；Build / Evolve 的智能放在 skill 里，Python 只做「运行时 + 最小确定性校验 +
-进化生命周期状态机」。
-
-## 进化闭环
-
-1. **Build**：`build-ontology` 按 workload 探针 → 证据落地，产出并发布 `ontology_v0`。
-2. **Use**：Data Agent 通过语义 MCP `browse_semantics` / `resolve_semantics` 做概念 grounding。
-3. **Record**：任务轨迹以 Tool Call 粒度写入 `trajectories/`（不存思维链）。
-4. **Evolve**：达到触发条件后，`evolve-ontology` 在 `EvolutionSession` 内循环诊断 → 归因 → 补丁 → 门控。
-5. **Evaluate**：`EvaluationGate` 用 GT 绝对评分或 LLM Judge A/B 比较 Parent/Candidate。
-
-状态机规则：
+EvoOntology adopts SkillOpt's methodology: treat the ontology layer as an Agent's trainable state and constrain every change with a round budget, validation data, and an Accept/Reject gate. SkillOpt trains skill documents; EvoOntology evolves ontology-layer records.
 
 ```text
-running ──Reject──▶ running（同一 run 下一轮 Candidate）
-running ──Accept──▶ accepted（发布新版本、切 active、推进 checkpoint）
-running ──预算耗尽/外部阻断──▶ incomplete（不发布、不推进）
+Natural-language question ──▶ Data Agent (Claude Code / Codex / benchmark harness)
+                                  │ MCP: browse_semantics / resolve_semantics
+                                  ▼
+                           EvoOntology layer ontology_vN
+                                  │
+                                  │ evolve-ontology
+                                  ▼
+             EvolutionSession: freeze budget and data → diagnose → attribute → patch → evaluate
+                                  │
+                                  ▼
+             trajectories/ + evaluations/ → Accept publishes ontology_vN+1
+                                           / Reject continues
+                                           / Incomplete retains Parent
 ```
 
-只有 Accept 或合法的 Incomplete 是终态；Reject 只是下一轮的输入。
+## Modules
 
-## 两种 mode
+| Directory | Responsibility |
+| --- | --- |
+| `evoontology/` | Deterministic core: ontology store, runtime/MCP, trajectories, triggers, evaluation, evolution state machine, and validation gate |
+| `plugins/claude-code/` | Claude Code plugin: `build-ontology` / `evolve-ontology` / `explore-ontology` skills, `.mcp.json`, and a Session Start reminder hook |
+| `plugins/evoontology-codex/` | Codex plugin: `AGENTS.md`, the three ontology skills, and `.mcp.json` |
+| `benchmarks/` | Three benchmark environments—BIRD, DDR-10K, and InsightBench—each implementing an `EvolutionAdapter` |
+| `scripts/` | `sync_plugin_core.py`, which synchronizes the root core into both plugins |
+| `docs/` | Architecture and integration documentation |
 
-项目在 Build Step 0 确定并写入 `.evoontology/project.json` 的 `mode`：
+The core package provides deterministic capabilities only. Build and Evolve intelligence remains in the skills; Python implements the runtime, minimal deterministic validation, and the evolution lifecycle state machine.
 
-- **`fixed_split`**：有固定问题集、Ground Truth 和评测边界的 benchmark。Construction Pool 用于
-  Build/诊断，Validation Reserve 只用于最终 Gate，不能回流到构建、诊断或补丁生成。
-- **`rolling_trajectory`**：没有固定测试集的真实业务或冷启动项目。seed workload 初始化 `ontology_v0`，
-  上线后的任务持续写入 `trajectories/`，达到阈值后冻结一批，用独立抽样任务或 LLM Judge 完成 Gate。
+## Evolution loop
 
-两种 mode 共用同一套 workspace、版本与 checkpoint 机制，区别只在 workload 如何进入构建、进化与评估。
+1. **Build**: `build-ontology` probes the workload, persists evidence, and produces and publishes `ontology_v0`.
+2. **Use**: the Data Agent grounds concepts through semantic MCP `browse_semantics` and `resolve_semantics`.
+3. **Record**: task trajectories are written to `trajectories/` at Tool Call granularity without chain-of-thought.
+4. **Evolve**: after a trigger, `evolve-ontology` loops through diagnosis → attribution → patch → gate inside an `EvolutionSession`.
+5. **Evaluate**: `EvaluationGate` compares Parent and Candidate using absolute GT scores or an LLM Judge A/B comparison.
 
-## benchmark 接入形式
+State-machine rules:
 
-每个 benchmark 是一个自包含环境，通过一个 `EvolutionAdapter` 接入进化循环（对应 SkillOpt 的 `EnvAdapter`）：
+```text
+running ──Reject──▶ running (next Candidate in the same run)
+running ──Accept──▶ accepted (publish, switch active, advance checkpoint)
+running ──budget exhausted / external block──▶ incomplete (do not publish or advance)
+```
 
-- `evolution_adapter.py`：`evaluate(subject, cases, output_hint)` → `{metrics, cases, artifact_paths}`；
-- `run_agent.py` / `run_evaluation.py`：rollout + 评分（对应 SkillOpt 的 `rollout.py`）；
-- `data/`（或场景加载器）：dataloader（对应 SkillOpt 的 `dataloader.py`）；
-- `configs/*.yaml`：baseline / semantic 两条实验条件；
-- seed skill：插件里的 `build-ontology`（对应 SkillOpt 的 `skills/initial.md`）。
+Only Accept or a valid Incomplete state is terminal. Reject supplies input to the next round.
 
-统一发现入口：`benchmarks/registry.py` + `python -m benchmarks`（对应 SkillOpt 的 `_ENV_REGISTRY`）。
-接入细节见 [接入一个新的 Benchmark](guide/new-benchmark.md)。
+## Two modes
+
+Build Step 0 selects the project's `mode` and writes it to `.evoontology/project.json`:
+
+- **`fixed_split`**: for benchmarks with a fixed question set, ground truth, and evaluation boundary. The Construction Pool supports Build and diagnosis; the Validation Reserve is used only for the final gate and must not flow back into construction, diagnosis, or patch generation.
+- **`rolling_trajectory`**: for production use or cold starts without a fixed test set. A seed workload initializes `ontology_v0`; later tasks accumulate in `trajectories/`. After the trigger, a batch is frozen and evaluated with independently sampled tasks or an LLM Judge.
+
+Both modes share the same workspace, versions, and checkpoint mechanism. They differ only in how workloads enter construction, evolution, and evaluation.
+
+## Benchmark integration
+
+Each benchmark is a self-contained environment connected to the evolution loop through an `EvolutionAdapter`, corresponding to SkillOpt's `EnvAdapter`:
+
+- `evolution_adapter.py`: `evaluate(subject, cases, output_hint)` → `{metrics, cases, artifact_paths}`;
+- `run_agent.py` / `run_evaluation.py`: rollout and scoring, corresponding to SkillOpt's `rollout.py`;
+- `data/` or a scenario loader: dataloader, corresponding to SkillOpt's `dataloader.py`;
+- `configs/*.yaml`: baseline and semantic experimental conditions;
+- seed skill: the plugin's `build-ontology`, corresponding to SkillOpt's `skills/initial.md`.
+
+Unified discovery uses `benchmarks/registry.py` and `python -m benchmarks`, corresponding to SkillOpt's `_ENV_REGISTRY`. See [Integrating a new benchmark](guide/new-benchmark.md).

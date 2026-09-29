@@ -1,24 +1,25 @@
+<p align="center">
+  English | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 # EvoOntology — Claude Code Plugin
 
-把 EvoOntology 打包成 Claude Code 插件：提供 `build-ontology`、`evolve-ontology`、
-`explore-ontology` 三个 skill、语义 MCP 运行时，以及 Session Start 进化提醒。
+The Claude Code plugin packages EvoOntology's three skills—`build-ontology`, `evolve-ontology`, and `explore-ontology`—together with the semantic MCP runtime and a Session Start evolution reminder.
 
-## 组件
+## Components
 
-| 组件 | 位置 | 作用 |
+| Component | Location | Purpose |
 | --- | --- | --- |
-| Build skill | `skills/build-ontology/` | 构建并发布 `ontology_v0` |
-| Evolve skill | `skills/evolve-ontology/` | 诊断 → 归因 → 补丁 → gate |
-| Explore skill | `skills/explore-ontology/` | 生成只读离线交互图 |
-| MCP 配置 | `.mcp.json` | 语义 MCP server 自动接入（零配置） |
-| 进化提醒 | `hooks/hooks.json` + `scripts/check-reminder.py` | Session Start 检查 evolution_due |
-| 确定性核心 | `evoontology/` | 内置 core 包（由仓库根经 `scripts/sync_plugin_core.py` 同步） |
+| Build skill | `skills/build-ontology/` | Build and publish `ontology_v0` |
+| Evolve skill | `skills/evolve-ontology/` | Diagnose → attribute → patch → gate |
+| Explore skill | `skills/explore-ontology/` | Generate a read-only offline interactive graph |
+| MCP configuration | `.mcp.json` | Connect the semantic MCP server automatically with zero configuration |
+| Evolution reminder | `hooks/hooks.json` + `scripts/check-reminder.py` | Check `evolution_due` at Session Start |
+| Deterministic core | `evoontology/` | Bundled core synchronized from the repository root by `scripts/sync_plugin_core.py` |
 
-语义 MCP 与确定性能力（store / runtime / trajectory / trigger / evaluation /
-evolution）由插件内置的 `evoontology/` 核心包提供，与仓库根保持一致（由
-`scripts/sync_plugin_core.py` 同步），插件自包含、开箱即用。
+The bundled `evoontology/` core supplies the semantic MCP and deterministic store, runtime, trajectory, trigger, evaluation, and evolution capabilities. It stays synchronized with the repository root and makes the plugin self-contained.
 
-## 安装
+## Installation
 
 ```bash
 claude plugin marketplace add ruc-datalab/EvoOntology
@@ -27,52 +28,37 @@ claude plugin install evoontology@evoontology
 claude plugin list
 ```
 
-无需 clone 仓库、创建虚拟环境或单独执行 `pip install`。`marketplace list` 用于确认 Marketplace 已添加，
-`plugin install` 才会下载插件，`plugin list` 用于确认最终安装状态。安装完成后三个 skill、
-语义 MCP 与进化提醒自动就位。
+No repository clone, virtual environment, or separate `pip install` is required. `marketplace list` confirms that the Marketplace was added; `plugin install` downloads the plugin; `plugin list` confirms the final installation state. After installation, all three skills, semantic MCP, and the evolution reminder are available.
 
-## 使用
+## Usage
 
-安装后可用三个 namespaced skill：
+Three namespaced skills are available:
 
-- `/evoontology:build-ontology` —— 读数据、探索 schema、生成五类记录，发布 `ontology_v0`；
-- `/evoontology:evolve-ontology` —— 诊断 → 归因 → 补丁 → Parent/Candidate gate → 落地。进化由
-  语义 MCP 的进化工具（`start_evolution_run` / `accept_evolution` 等）驱动：新 run 使用 quick（2 轮）或 full（默认 8 轮）预算，
-  Reject 后在同一 run 内继续下一轮，直到 Accept 发布新版本并推进 checkpoint。
-- `/evoontology:explore-ontology` —— 调用语义 MCP 的 `visualize_ontology` 生成离线交互图，只读不改状态。
+- `/evoontology:build-ontology` — inspect data and schema, generate the five record types, and publish `ontology_v0`.
+- `/evoontology:evolve-ontology` — diagnose → attribute → patch → Parent/Candidate gate → persist. Semantic MCP evolution tools such as `start_evolution_run` and `accept_evolution` drive the process. A new run uses a quick two-round or full eight-round default budget. Reject continues within the same run; Accept publishes a new version and advances the checkpoint.
+- `/evoontology:explore-ontology` — invoke `visualize_ontology` to generate a read-only offline interactive graph.
 
-三个入口均由 agent 按对应 skill 执行；确定性发布与渲染统一走语义 MCP 工具。
+The agent follows the corresponding skill for all three entry points; deterministic publication and rendering use semantic MCP tools.
 
-### 两种 mode
+### Two modes
 
-- `fixed_split`：用于已有固定问题集、GT 与官方评测边界的 benchmark；Construction Pool
-  用于构建和诊断，Validation Reserve 只用于最终 Gate。
-- `rolling_trajectory`：用于真实业务或冷启动；seed workload 初始化本体层，后续按 checkpoint
-  收集新 task trajectory。没有 GT 时使用独立任务抽样和 LLM Judge，无需强行划分 Fold A/B。
+- `fixed_split`: for benchmarks with a fixed question set, ground truth, and official evaluation boundary. The Construction Pool supports construction and diagnosis; the Validation Reserve is used only for the final gate.
+- `rolling_trajectory`: for production use or cold starts. A seed workload initializes the ontology layer, and later task trajectories accumulate from the checkpoint. Without ground truth, use independently sampled tasks and an LLM Judge rather than forcing Fold A/B.
 
-mode 在 Build Step 0 确认并写入 `project.json`，Evolve 直接复用。
+Build Step 0 confirms the mode and writes it to `project.json`; Evolve reuses it.
 
-### 语义 MCP
+### Semantic MCP
 
-`.mcp.json` 通过插件内置的跨平台 launcher 启动语义服务，client 自动拉起。默认 workspace 为当前项目的
-`.evoontology/`（零配置）；如需指向别的 workspace，在 `.mcp.json` 的 args 里追加
-`"--store", "<workspace-root>"`。Data Agent 可见 `browse_semantics`、`resolve_semantics`
-两个导航工具与 `evo-semantic://session-manifest` 资源；Build / Evolve / Visualize 通过
-`publish_ontology_build`、`finalize_evolution_run`、`visualize_ontology` 与进化会话工具完成，
-无需在用户项目中运行 `python -m evoontology...`。
+`.mcp.json` launches the semantic service through the bundled cross-platform launcher, and the client starts it automatically. The default workspace is `.evoontology/` in the current project. To select another workspace, append `"--store", "<workspace-root>"` to `args` in `.mcp.json`.
 
-### 进化提醒
+The Data Agent sees the `browse_semantics` and `resolve_semantics` navigation tools and the `evo-semantic://session-manifest` resource. Build, Evolve, and Visualize use `publish_ontology_build`, `finalize_evolution_run`, `visualize_ontology`, and evolution-session tools. Users do not need to run `python -m evoontology...` in their projects.
 
-每次 Session Start，`check-reminder.py` 读取 `<cwd>/.evoontology/state.json` 与
-`trajectories/`，达到触发条件（默认 30 个新 task 或 7 天）时向会话注入提醒，用户自行决定
-是否执行 `/evoontology:evolve-ontology`。不自动启动进化。
+### Evolution reminder
 
-`state.json` 使用中性的 `checkpoint_time` / `checkpoint_trajectory`：首次基线是
-`ontology_v0` 发布时间，只有正式 Gate 的 Accept 才推进 checkpoint（Reject 在
-同一 run 内继续循环，Incomplete 不推进）。
+At every Session Start, `check-reminder.py` reads `<cwd>/.evoontology/state.json` and `trajectories/`. When the default trigger of 30 new tasks or seven days is reached, it injects a reminder; the user decides whether to run `/evoontology:evolve-ontology`. Evolution never starts automatically.
 
-## 发布校验（agent 自动）
+`state.json` uses neutral `checkpoint_time` and `checkpoint_trajectory` fields. The initial baseline is the publication time of `ontology_v0`. Only a formal gate Accept advances the checkpoint; Reject continues in the same run, and Incomplete does not advance it.
 
-`/evoontology:build-ontology`、`/evoontology:evolve-ontology` 发布新版本前，agent 会自动调用语义 MCP 的
-`validate_semantics` 工具做确定性门禁（JSON 合法 / 引用完整 / 可加载），用户无需手动执行。
-只做结构校验，不做数据库语义校验。
+## Publication validation
+
+Before `/evoontology:build-ontology` or `/evoontology:evolve-ontology` publishes a version, the agent automatically invokes semantic MCP `validate_semantics`. This deterministic gate checks valid JSON, complete references, and loadability. It does not validate database semantics.

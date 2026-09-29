@@ -1,16 +1,16 @@
-# 轨迹格式
+<p align="center">
+  English | <a href="trajectory-format.zh-CN.md">简体中文</a>
+</p>
 
-轨迹不能太简洁（不够进化诊断用），也不能太复杂（无必要冗余）。记录粒度：
+# Trajectory Format
 
-- `semantic_calls`：记 **input + result**（覆盖诊断需要知道「查了什么、命中什么」）。
-- `native_tool_calls`：记**完整 result + 上限截断**——`result` 记完整返回，超阈值（约 2KB
-  或 20 行）截断并置 `result_truncated: true`；`result_summary` 始终给稳定概览。
-- `ontology_version`：**必填**，归因必须关联到具体版本。
-- **不记推理过程（CoT）**：工具 I/O 序列本身就是可观察的推理轨迹，CoT 是模型内部状态、
-  噪声与存储负担；真正的中间结论已沉淀进 `final_answer`，如需另存可加可选 `notes`。
+A trajectory must contain enough detail for evolution diagnosis without unnecessary redundancy. Record at this granularity:
 
-字段：`task_id / question / ontology_version / semantic_calls / native_tool_calls /
-final_answer / task_status / errors`（评估结果不落轨迹，归 `evolution/`）。
+- `semantic_calls`: store **input and result**, so diagnosis can determine what was queried and what matched.
+- `native_tool_calls`: store the **complete result up to a limit**. Truncate results beyond roughly 2 KB or 20 lines and set `result_truncated: true`; always provide a stable `result_summary`.
+- `ontology_version`: **required**, because attribution must identify the exact version.
+- **Do not store chain-of-thought**: the tool I/O sequence is the observable reasoning trace. Chain-of-thought is internal model state, noise, and storage overhead. Material intermediate conclusions belong in `final_answer`; use optional `notes` only when separately needed.
 
-轨迹由 Data Agent 运行时（benchmark adapter 侧）在每次任务结束时追加到
-`trajectories/`，非 evo 运行时职责。
+Fields: `task_id / question / ontology_version / semantic_calls / native_tool_calls / final_answer / task_status / errors`. Evaluation results belong under `evolution/`, not in trajectories.
+
+The Data Agent runtime on the benchmark-adapter side appends a trajectory to `trajectories/` after each task. This is not the EvoOntology runtime's responsibility.

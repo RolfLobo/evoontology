@@ -1,27 +1,26 @@
-# 版本命名与切换
+<p align="center">
+  English | <a href="versioning.zh-CN.md">简体中文</a>
+</p>
 
-## 版本命名
+# Version Naming and Switching
 
-| 类型 | 命名 | 示例 |
+## Naming
+
+| Type | Name | Example |
 | --- | --- | --- |
-| 正式版本 | `ontology_vN`（N 单调递增） | `ontology_v0` 初始、`ontology_v1` 第 1 次 accept |
-| 候选 | `vN-cK`（关联源版本 + 序号） | `v0-c1` = 从 v0 进化的第 1 个候选 |
+| Published version | `ontology_vN`, with monotonically increasing N | `ontology_v0` initially; `ontology_v1` after the first acceptance |
+| Candidate | `vN-cK`, identifying its source version and sequence | `v0-c1` is the first candidate evolved from v0 |
 
-accept 映射：`vN-cK` → `ontology_vN+1`。
+Acceptance maps `vN-cK` to `ontology_vN+1`.
 
-读取时兼容迁移前的 `semantic_vN`；新建与 Accept 只使用 `ontology_vN`。
+Readers remain compatible with the legacy `semantic_vN` name. New versions and accepted versions use `ontology_vN` only.
 
-Candidate 在正式 Gate 前保存到 `versions/vN-cK/`，但不得修改 `active.json`。先用
-语义 MCP 的 `validate_semantics` 工具（`version` 传 `vN-cK`）校验该未激活版本。
+Before the formal gate, a Candidate is stored in `versions/vN-cK/` and must not modify `active.json`. Validate this inactive version with semantic MCP `validate_semantics` and `version` set to `vN-cK`.
 
-## 切换
+## Switching
 
-「切换版本」是 evolve skill 的操作步骤（改 `active.json` 指针），不设独立命令。
-运行时 `store.py` 与命名约定无关：只读 version 字段并加载 `versions/<name>/`，
-不校验命名格式。
+Version switching is a step in the evolve skill that changes the `active.json` pointer; there is no separate command. Runtime `store.py` is naming-agnostic: it reads the version field and loads `versions/<name>/` without validating the naming pattern.
 
-- Accept：`accept_evolution` 把 Candidate 发布为下一个 `ontology_vN+1`
-  （不覆盖已有正式版本），切换 `active.json`，并推进 checkpoint；
-- Reject：保留 Parent 为 Active，Candidate 与 `run_N` 轮次记录留作审计，在同一 run
-  内继续下一轮，不推进 checkpoint；
-- Incomplete：不切换 Active，也不推进 checkpoint。
+- Accept: `accept_evolution` publishes the Candidate as the next `ontology_vN+1` without overwriting an existing published version, switches `active.json`, and advances the checkpoint.
+- Reject: the Parent remains active. The Candidate and `run_N` round record remain for audit, the next round continues in the same run, and the checkpoint does not advance.
+- Incomplete: the active version and checkpoint remain unchanged.
